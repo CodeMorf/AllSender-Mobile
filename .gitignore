@@ -1,0 +1,53 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+expo-env.d.ts
+
+# Native generated projects / local build output
+/android
+/ios
+.kotlin/
+*.orig.*
+*.aab
+*.apk
+*.ipa
+
+# Signing / credentials
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Metro / debug
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Archives and local caches
+*.tgz
+*.tar.gz
+.cache/

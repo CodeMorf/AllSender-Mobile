@@ -1,0 +1,2437 @@
+{
+  "info": {
+    "_postman_id": "d16d77a0-3c6d-4b5a-bdf2-allsender-mobile",
+    "name": "AllSender Mobile API (producción real)",
+    "description": "Colección basada en rutas reales auditadas en auth.allsender.tech. No incluye /api/mobile/v1 ni endpoints inventados. Variables sensibles vacías. OAuth usa /api/oauth/*; Chat Mobile usa sesión/cookie; RestaPP y Orders usan API key Bearer. No hay endpoint publicado de cambio de equipo, revoke OAuth ni Pusher auth.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://auth.allsender.tech",
+      "type": "string"
+    },
+    {
+      "key": "redirect_uri",
+      "value": "manusomnichannelmobile://oauth/callback",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_secret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "signup_name",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "code_verifier",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "code_challenge",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "state",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "authorization_code",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "team_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "chat_id",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "jid",
+      "value": "demo",
+      "type": "string"
+    },
+    {
+      "key": "instance_id",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "instance_name",
+      "value": "__INSTANCE_NAME__",
+      "type": "string"
+    },
+    {
+      "key": "device_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fcm_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expo_push_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "media_base64",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "developer_api_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "service_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resource_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "booking_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "function r(n){var s='';while(s.length<n)s+=Math.random().toString(36).slice(2);return s.slice(0,n);}",
+          "if(!pm.collectionVariables.get('state'))pm.collectionVariables.set('state',r(32));",
+          "if(!pm.collectionVariables.get('code_verifier'))pm.collectionVariables.set('code_verifier',r(64));",
+          "if(!pm.collectionVariables.get('code_challenge')){var v=pm.collectionVariables.get('code_verifier');var b=CryptoJS.SHA256(v).toString(CryptoJS.enc.Base64).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');pm.collectionVariables.set('code_challenge',b);}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 OAuth",
+      "description": "Rutas OAuth reales. La implementación actual exige client_secret en /api/oauth/token incluso con PKCE; no se incrusta ningún secreto en esta colección. Se requiere una OAuth App ya registrada.",
+      "item": [
+        {
+          "name": "Abrir autorización OAuth + PKCE",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/es/oauth/authorize?response_type=code&client_id={{client_id}}&redirect_uri={{redirect_uri}}&scope=openid profile email team offline_access&state={{state}}&code_challenge={{code_challenge}}&code_challenge_method=S256",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "es",
+                "oauth",
+                "authorize"
+              ],
+              "query": [
+                {
+                  "key": "response_type",
+                  "value": "code"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{redirect_uri}}"
+                },
+                {
+                  "key": "scope",
+                  "value": "openid profile email team offline_access"
+                },
+                {
+                  "key": "state",
+                  "value": "{{state}}"
+                },
+                {
+                  "key": "code_challenge",
+                  "value": "{{code_challenge}}"
+                },
+                {
+                  "key": "code_challenge_method",
+                  "value": "S256"
+                }
+              ]
+            },
+            "description": "GET HTML de autorización publicado en producción."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('authorize responde',function(){pm.expect([200,400]).to.include(pm.response.code);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login OAuth y crear authorization_code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"login\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"client_id\": \"{{client_id}}\",\n  \"redirect_uri\": \"{{redirect_uri}}\",\n  \"scope\": \"openid profile email team offline_access\",\n  \"state\": \"{{state}}\",\n  \"code_challenge\": \"{{code_challenge}}\",\n  \"code_challenge_method\": \"S256\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/oauth/consent",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "consent"
+              ]
+            },
+            "description": "POST real. El cookie de sesión se conserva automáticamente en Postman."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var configured=!!(pm.collectionVariables.get('client_id')&&pm.collectionVariables.get('email')&&pm.collectionVariables.get('password'));var b={};try{b=pm.response.json();}catch(e){};if(configured){pm.test('login HTTP 200',function(){pm.response.to.have.status(200);});pm.test('authorization code',function(){pm.expect(b.redirect_to).to.be.a('string');});if(b.redirect_to){var x=new URL(b.redirect_to);pm.collectionVariables.set('authorization_code',x.searchParams.get('code')||'');pm.test('state coincide',function(){pm.expect(x.searchParams.get('state')).to.eql(pm.collectionVariables.get('state'));});}pm.collectionVariables.set('session_login_ok','true');}else{pm.test('sin credenciales devuelve 400/401',function(){pm.expect([400,401]).to.include(pm.response.code);});}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro OAuth (opcional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"signup\",\n  \"name\": \"{{signup_name}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"client_id\": \"{{client_id}}\",\n  \"redirect_uri\": \"{{redirect_uri}}\",\n  \"scope\": \"openid profile email team offline_access\",\n  \"state\": \"{{state}}\",\n  \"code_challenge\": \"{{code_challenge}}\",\n  \"code_challenge_method\": \"S256\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/oauth/consent",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "consent"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var configured=!!(pm.collectionVariables.get('client_id')&&pm.collectionVariables.get('email')&&pm.collectionVariables.get('password'));if(configured){pm.test('signup 200 o email existente',function(){pm.expect([200,409]).to.include(pm.response.code);});}else{pm.test('signup sin datos 400/401',function(){pm.expect([400,401]).to.include(pm.response.code);});}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Intercambiar code por tokens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{client_secret}}",
+                  "type": "text"
+                },
+                {
+                  "key": "code",
+                  "value": "{{authorization_code}}",
+                  "type": "text"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{redirect_uri}}",
+                  "type": "text"
+                },
+                {
+                  "key": "code_verifier",
+                  "value": "{{code_verifier}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/oauth/token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "token"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var configured=!!(pm.collectionVariables.get('client_id')&&pm.collectionVariables.get('client_secret')&&pm.collectionVariables.get('authorization_code'));var b={};try{b=pm.response.json();}catch(e){};if(configured){pm.test('token HTTP 200',function(){pm.response.to.have.status(200);});pm.test('access_token recibido',function(){pm.expect(b.access_token).to.be.a('string').and.not.empty;});pm.collectionVariables.set('access_token',b.access_token||'');pm.collectionVariables.set('refresh_token',b.refresh_token||'');}else{pm.test('sin credenciales token 400/401',function(){pm.expect([400,401]).to.include(pm.response.code);});}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "refresh_token",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{client_secret}}",
+                  "type": "text"
+                },
+                {
+                  "key": "refresh_token",
+                  "value": "{{refresh_token}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/oauth/token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "token"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var configured=!!(pm.collectionVariables.get('client_id')&&pm.collectionVariables.get('client_secret')&&pm.collectionVariables.get('refresh_token'));var b={};try{b=pm.response.json();}catch(e){};if(configured){pm.test('refresh HTTP 200',function(){pm.response.to.have.status(200);});pm.test('refresh access_token',function(){pm.expect(b.access_token).to.be.a('string').and.not.empty;});pm.collectionVariables.set('access_token',b.access_token||'');if(b.refresh_token)pm.collectionVariables.set('refresh_token',b.refresh_token);}else{pm.test('sin refresh 400/401',function(){pm.expect([400,401]).to.include(pm.response.code);});}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "UserInfo OAuth",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/oauth/userinfo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "userinfo"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('access_token');var b={};try{b=pm.response.json();}catch(e){};if(has){pm.test('userinfo HTTP 200',function(){pm.response.to.have.status(200);});pm.test('userinfo identidad',function(){pm.expect(b.id||b.user_id||b.sub).to.exist;});pm.collectionVariables.set('user_id',String(b.id||b.user_id||b.sub||''));if(b.team_id||b.teamId)pm.collectionVariables.set('team_id',String(b.team_id||b.teamId));}else{pm.test('userinfo sin token 401',function(){pm.response.to.have.status(401);});}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Sesión y Equipo",
+      "description": "Bootstrap, equipo actual y APIs de módulos. La mayoría usa la cookie session creada por consent; no existe endpoint publicado para listar/cambiar equipo.",
+      "item": [
+        {
+          "name": "Usuario de sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);var b=pm.response.json();if(b&&b.id){pm.collectionVariables.set('user_id',String(b.id));pm.test('user id presente',function(){pm.expect(b.id).to.exist;});}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Equipo actual",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/team",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "team"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('team 200/404',function(){pm.expect([200,404]).to.include(pm.response.code);});if(pm.response.code===200){var b=pm.response.json();pm.collectionVariables.set('team_id',String(b.id||''));pm.test('team id',function(){pm.expect(b.id).to.exist;});}}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "App shell móvil",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/mobile/app-shell?locale=es",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "mobile",
+                "app-shell"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "es"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);pm.test('modules array',function(){pm.expect(pm.response.json().modules).to.be.an('array');});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bootstrap Chat Mobile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/bootstrap",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "bootstrap"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bootstrap CRM Chat Mobile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/crm/bootstrap",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "crm",
+                "bootstrap"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Módulos activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/modules/active",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "modules",
+                "active"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Canales y módulos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/modules/channels",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "modules",
+                "channels"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);if(pm.response.code===200)pm.test('modules array',function(){pm.expect(pm.response.json().modules).to.be.an('array');});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sucursales estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/branches/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "branches",
+                "status"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);if(pm.response.code===200)pm.test('states array',function(){pm.expect(pm.response.json().states).to.be.an('array');});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sucursales configuración",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/branches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "branches"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.expect([200,403]).to.include(pm.response.code);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Departamentos configuración",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservas servicios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reservas/services",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "services"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservas recursos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reservas/resources",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "resources"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservas disponibilidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reservas/availability-rules",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "availability-rules"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservas bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reservas/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "bookings"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservas ajustes Auto Cita IA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reservas/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reservas",
+                "settings"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders?limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.response.to.have.status(200);pm.test('orders data array',function(){pm.expect(pm.response.json().data).to.be.an('array');});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — detalle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders/{{order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders",
+                "{{order_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.test('detalle 200 o 404',function(){pm.expect([200,404]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — confirmar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders/{{order_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders",
+                "{{order_id}}",
+                "confirm"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.test('confirmar 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — cancelar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders/{{order_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders",
+                "{{order_id}}",
+                "cancel"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.test('cancelar 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — tracking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tracking_number\": \"\",\n  \"tracking_provider\": \"\",\n  \"shipment_status\": \"in_transit\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders/{{order_id}}/tracking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders",
+                "{{order_id}}",
+                "tracking"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.test('tracking 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — verificar pago",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders/{{order_id}}/payment/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders",
+                "{{order_id}}",
+                "payment",
+                "verify"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.test('payment verify 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — rechazar pago",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders/{{order_id}}/payment/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders",
+                "{{order_id}}",
+                "payment",
+                "reject"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.test('payment reject 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders Developer — comprobante de pago",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{developer_api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developers/orders/{{order_id}}/payment-proof",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "developers",
+                "orders",
+                "{{order_id}}",
+                "payment-proof"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('developer_api_key');if(has){pm.test('payment proof 200/404',function(){pm.expect([200,404]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RestaPP — menú",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restapp-ai/v1/menu",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "restapp-ai",
+                "v1",
+                "menu"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('api_key');if(has){pm.test('RestaPP 200/403',function(){pm.expect([200,403]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RestaPP — pedidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restapp-ai/v1/orders?limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "restapp-ai",
+                "v1",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('api_key');if(has){pm.test('RestaPP pedidos 200/403',function(){pm.expect([200,403]).to.include(pm.response.code);});if(pm.response.code===200)pm.test('orders array',function(){pm.expect(pm.response.json().data).to.be.an('array');});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RestaPP — reservas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{api_key}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restapp-ai/v1/reservations?limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "restapp-ai",
+                "v1",
+                "reservations"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!pm.collectionVariables.get('api_key');if(has){pm.test('RestaPP reservas 200/403',function(){pm.expect([200,403]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Chats",
+      "description": "Chats, mensajes, toma, leído y estado IA. Los IDs se rellenan desde el listado autenticado.",
+      "item": [
+        {
+          "name": "Chats — listar y guardar IDs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/chats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "chats"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);var b=pm.response.json();pm.test('chats array',function(){pm.expect(b.chats).to.be.an('array');});if(b.chats&&b.chats[0]){var c=b.chats[0];pm.collectionVariables.set('chat_id',String(c.id||''));pm.collectionVariables.set('jid',String(c.remoteJid||c.jid||''));pm.collectionVariables.set('instance_id',String(c.instanceId||c.instance_id||''));}}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Permiso chats sin sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/chats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "chats"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(401);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mensajes de chat",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/messages?jid={{jid}}&instanceId={{instance_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "jid",
+                  "value": "{{jid}}"
+                },
+                {
+                  "key": "instanceId",
+                  "value": "{{instance_id}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('mensajes HTTP 200/403/404',function(){pm.expect([200,403,404]).to.include(pm.response.code);});if(pm.response.code===200)pm.test('messages array',function(){pm.expect(pm.response.json().messages).to.be.an('array');});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tomar chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chatId\": \"{{chat_id}}\",\n  \"instanceId\": \"{{instance_id}}\",\n  \"jid\": \"{{jid}}\",\n  \"source\": \"mobile\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/take-chat",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "take-chat"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('take 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Marcar chat leído",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chatId\": {{chat_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chats/mark-read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "mark-read"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('mark-read 200/404',function(){pm.expect([200,404]).to.include(pm.response.code);});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activar/pausar IA del chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chatId\": \"{{chat_id}}\",\n  \"instanceId\": \"{{instance_id}}\",\n  \"enabled\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/ai/toggle",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "ai",
+                "toggle"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('toggle 200/404',function(){pm.expect([200,404]).to.include(pm.response.code);});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estado sesión automatización",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chats/{{chat_id}}/session",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{chat_id}}",
+                "session"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cerrar chat",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chats/{{chat_id}}/close",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{chat_id}}",
+                "close"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Mensajes",
+      "description": "Envío de texto por el wrapper móvil real. El canal se resuelve por recipientJid.",
+      "item": [
+        {
+          "name": "Enviar mensaje de texto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientJid\": \"{{jid}}\",\n  \"text\": \"Mensaje de prueba desde AllSender Mobile\",\n  \"instanceId\": \"{{instance_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "send"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);var b={};try{b=pm.response.json();}catch(e){};pm.test('message id',function(){pm.expect(b.id||b.messageId||b.message_id).to.exist;});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Permiso envío sin sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientJid\": \"demo\",\n  \"text\": \"no debe enviarse\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "send"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(401);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Media",
+      "description": "Media real: sendMedia para imagen/video/documento; sendAudio para audio; send-location para ubicación. Se usa base64, no URLs.",
+      "item": [
+        {
+          "name": "Enviar Imagen (sendMedia)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientJid\": \"{{jid}}\",\n  \"fileBase64\": \"{{media_base64}}\",\n  \"mimeType\": \"image/png\",\n  \"fileName\": \"imagen.png\",\n  \"instanceId\": \"{{instance_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/sendMedia",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "sendMedia"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('media 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar Vídeo (sendMedia)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientJid\": \"{{jid}}\",\n  \"fileBase64\": \"{{media_base64}}\",\n  \"mimeType\": \"video/mp4\",\n  \"fileName\": \"video.mp4\",\n  \"instanceId\": \"{{instance_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/sendMedia",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "sendMedia"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('media 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar Documento (sendMedia)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientJid\": \"{{jid}}\",\n  \"fileBase64\": \"{{media_base64}}\",\n  \"mimeType\": \"application/pdf\",\n  \"fileName\": \"documento.pdf\",\n  \"instanceId\": \"{{instance_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/sendMedia",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "sendMedia"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('media 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar audio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientJid\": \"{{jid}}\",\n  \"audioBase64\": \"{{media_base64}}\",\n  \"audioMimeType\": \"audio/webm\",\n  \"instanceId\": \"{{instance_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/sendAudio",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "sendAudio"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('audio 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar ubicación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientJid\": \"{{jid}}\",\n  \"latitude\": 18.4861,\n  \"longitude\": -69.9312,\n  \"name\": \"AllSender\",\n  \"address\": \"Santo Domingo\",\n  \"instanceId\": \"{{instance_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/send-location",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "send-location"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.test('location 200/404/409',function(){pm.expect([200,404,409]).to.include(pm.response.code);});}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Realtime",
+      "description": "No existe /api/pusher/auth en producción (404). El servidor publica eventos Pusher; estos son los endpoints reales de bootstrap/snapshot.",
+      "item": [
+        {
+          "name": "Realtime bootstrap",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/bootstrap",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "bootstrap"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Realtime snapshot chats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/chats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "chats"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.response.to.have.status(200);if(pm.response.code===200)pm.test('snapshot chats array',function(){pm.expect(pm.response.json().chats).to.be.an('array');});}else{pm.response.to.have.status(401);}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 Push y Devices",
+      "description": "Firebase y push son rutas reales. El registro legacy de dispositivo acepta POST sin sesión; el cuerpo queda vacío para no mutar producción al importar.",
+      "item": [
+        {
+          "name": "Firebase config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/firebase/config",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "firebase",
+                "config"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);pm.test('firebase JSON',function(){pm.expect(pm.response.json()).to.be.an('object');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar token FCM",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fcmToken\": \"{{fcm_token}}\",\n  \"deviceId\": \"{{device_id}}\",\n  \"platform\": \"mobile\",\n  \"appVersion\": \"1.0.0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat-mobile/firebase/register-token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat-mobile",
+                "firebase",
+                "register-token"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.expect([200,400]).to.include(pm.response.code);}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar dispositivo móvil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"expoPushToken\": \"{{expo_push_token}}\",\n  \"platform\": \"ios\",\n  \"app\": \"allsender-mobile\",\n  \"appVersion\": \"1.0.0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/mobile/register-device",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "mobile",
+                "register-device"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if(pm.collectionVariables.get('device_id'))pm.response.to.have.status(200);else pm.response.to.have.status(400);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Push de prueba",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"to\": \"{{expo_push_token}}\",\n  \"title\": \"AllSender Mobile\",\n  \"body\": \"Prueba de notificación\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/mobile/test-push",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "mobile",
+                "test-push"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var has=!!(pm.collectionVariables.get('device_id')||pm.collectionVariables.get('expo_push_token'));if(has)pm.expect([200,400,500]).to.include(pm.response.code);else pm.response.to.have.status(400);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 Logout",
+      "description": "No existe /api/oauth/revoke en la API publicada. Se incluyen sólo los logout reales: página de sesión e instancia WhatsApp/Evolution.",
+      "item": [
+        {
+          "name": "Cerrar sesión AllSender",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/es/sign-out",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "es",
+                "sign-out"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('sign-out redirige o responde',function(){pm.expect([200,307,308]).to.include(pm.response.code);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cerrar instancia WhatsApp/Evolution",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/instance/logout?instanceName={{instance_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "instance",
+                "logout"
+              ],
+              "query": [
+                {
+                  "key": "instanceName",
+                  "value": "{{instance_name}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var logged=pm.collectionVariables.get('session_login_ok')==='true';if(logged){pm.expect([200,404]).to.include(pm.response.code);}else{pm.expect([400,401]).to.include(pm.response.code);}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

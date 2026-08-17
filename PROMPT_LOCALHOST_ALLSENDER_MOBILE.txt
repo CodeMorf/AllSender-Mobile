@@ -1,0 +1,55 @@
+CODEX / LOCALHOST — VALIDAR ALLSENDER MOBILE NATIVO
+
+Proyecto: AllSender-Mobile
+Objetivo: levantar y validar el cliente React Native/Expo contra la API REAL de https://auth.allsender.tech. NO convertir en web, PWA ni WebView.
+
+1) Entrar al proyecto y revisar README.md, READMAP.md, docs/API_REAL.md y docs/VALIDATION.md.
+
+2) Usar Node >= 20.19 y ejecutar:
+   npm install
+   npm run check
+   npm run lint
+   npm test
+
+3) Crear .env desde .env.example y completar SOLO valores públicos:
+   EXPO_PUBLIC_ALLSENDER_BASE_URL=https://auth.allsender.tech
+   EXPO_PUBLIC_ALLSENDER_CLIENT_ID=<CLIENT_ID_REAL_REGISTRADO>
+   EXPO_PUBLIC_ALLSENDER_REDIRECT_URI=manusomnichannelmobile://oauth/callback
+   EXPO_PUBLIC_EAS_PROJECT_ID=<EAS_PROJECT_ID>
+   EXPO_PUBLIC_ALLSENDER_SYNC_INTERVAL_MS=2500
+
+NUNCA poner client_secret en React Native.
+
+4) Verificar con la colección postman/AllSender-Mobile-API.postman_collection.json que las rutas reales siguen respondiendo. No inventar /api/mobile/v1.
+
+5) Levantar:
+   npx expo start --clear
+
+6) Android físico/emulador:
+   npx expo prebuild --clean
+   npx expo run:android
+
+7) iOS, únicamente en macOS:
+   npx expo run:ios
+
+8) Validar de punta a punta con una cuenta/equipo QA, no con clientes reales:
+   - login nativo;
+   - cookie de sesión persistente;
+   - /api/user y /api/team;
+   - listado de chats;
+   - abrir mensajes;
+   - enviar texto;
+   - grabar y enviar nota de voz;
+   - tomar chat;
+   - mark-read;
+   - recibir push;
+   - abrir chat desde push;
+   - logout y volver a iniciar.
+
+9) Para push remoto usar development/release build con EAS_PROJECT_ID real. No considerar Expo Go como QA final de push.
+
+10) Si falla login, comprobar PRIMERO que EXPO_PUBLIC_ALLSENDER_CLIENT_ID corresponde a una OAuth App registrada que acepte el redirect exacto manusomnichannelmobile://oauth/callback. No hardcodear secretos para "resolver" el problema.
+
+11) No declarar multi-team ni Pusher realtime completados: el Postman actual no publica esos endpoints. Documentar cualquier cambio de backend por separado.
+
+12) Cuando todos los checks y QA físicos pasen, actualizar docs/VALIDATION.md con evidencia real, versión/build y fecha. No marcar producción estable antes.
