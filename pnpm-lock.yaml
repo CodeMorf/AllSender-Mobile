@@ -132,6 +132,9 @@ importers:
       prettier:
         specifier: ^3.7.4
         version: 3.7.4
+      react-dom:
+        specifier: 19.1.0
+        version: 19.1.0(react@19.1.0)
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.19(tsx@4.21.0)(yaml@2.8.2)
