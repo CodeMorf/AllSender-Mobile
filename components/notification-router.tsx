@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
+import { Platform } from "react-native";
 import { useEffect, useRef } from "react";
 
 import { useAllSenderAuth } from "@/lib/allsender/auth-context";
@@ -27,6 +28,11 @@ export function NotificationRouter() {
   const lastResponseIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    // expo-notifications has no web implementation for notification response
+    // listeners. Push routing remains enabled on Android/iOS only; the web
+    // preview must still render the sign-in screen without throwing.
+    if (Platform.OS === "web") return;
+
     function receive(data: NotificationData | null, responseId?: string | null) {
       if (responseId && lastResponseIdRef.current === responseId) return;
       if (!data?.jid || !(data.chatId || data.chat_id)) return;
