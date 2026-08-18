@@ -145,7 +145,7 @@ export default function SignInScreen() {
               <View className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-3.5">
                 <Text className="font-semibold text-foreground">Acceso en preparación</Text>
                 <Text className="mt-1 text-sm leading-5 text-muted">
-                  El acceso de este entorno todavía no está habilitado. Vuelve a intentarlo cuando tu equipo reciba la invitación.
+                  El administrador aún debe activar AllSender Mobile para este equipo. Después podrás entrar con tu cuenta habitual.
                 </Text>
               </View>
             ) : null}
