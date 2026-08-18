@@ -82,6 +82,53 @@ Latitud, longitud, nombre y dirección.
 ### POST `/api/chat-mobile/ai/toggle`
 Activa/pausa el estado IA de la conversación cuando el usuario tenga permiso.
 
+## Gestión móvil por módulos
+
+Estas rutas usan la misma sesión HttpOnly del móvil y derivan `team_id` y rol
+del servidor. No aceptan API keys de Developers ni un equipo arbitrario enviado
+por el cliente.
+
+### Ventas IA y órdenes
+
+- GET `/api/mobile/orders`
+- GET `/api/mobile/orders/{id}`
+- PATCH `/api/mobile/orders/{id}`
+- POST `/api/mobile/orders/{id}/confirm`
+- POST `/api/mobile/orders/{id}/cancel`
+- POST `/api/mobile/orders/{id}/tracking`
+- POST `/api/mobile/orders/{id}/payment-verify`
+- POST `/api/mobile/orders/{id}/payment-reject`
+
+Lectura: miembros autorizados por el equipo. Cambios: owner/admin y módulo
+Órdenes o Ventas IA activo.
+
+### Reservas y calendario
+
+- GET `/api/mobile/reservations`
+- POST `/api/mobile/reservations`
+- PATCH `/api/mobile/reservations`
+
+La implementación reutiliza el motor real de `reservation_bookings`, conflictos,
+recordatorios y sincronización de calendario.
+
+### RestApp
+
+- GET `/api/mobile/restapp/orders`
+- GET `/api/mobile/restapp/reservations`
+- GET `/api/mobile/restapp/dashboard`
+- GET `/api/mobile/restapp/menu`
+- POST `/api/mobile/restapp/orders`
+- POST `/api/mobile/restapp/reservations`
+- PATCH `/api/mobile/restapp/orders` (id + status)
+
+### Capacidades y tiempo real
+
+- GET `/api/mobile/app-shell?locale=es` devuelve módulos, permisos, canales y contadores.
+- GET `/api/mobile/realtime/config` devuelve únicamente la configuración pública
+  de Pusher y el canal autorizado del equipo.
+- Pusher publica `new-message`, `chat-list-update` y estados; el móvil mantiene
+  polling como fallback si Pusher no está configurado.
+
 ## Push
 
 ### GET `/api/chat-mobile/firebase/config`

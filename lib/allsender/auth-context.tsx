@@ -1,11 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
+import * as LocalAuthentication from "expo-local-authentication";
 
 import { getBootstrap, getCurrentTeam, getSessionUser } from "./api";
 import { signInNative, signOutNative, signUpNative } from "./oauth";
 import { clearSession, getCachedUserInfo, setCachedUserInfo } from "./session";
+import { loadPreferences } from "../preferences";
 import type { AllSenderUserInfo, BootstrapResponse } from "./types";
-import { ALLSENDER_CLIENT_ID } from "@/constants/allsender";
 
 export type AuthStatus = "loading" | "signed_out" | "authenticated" | "error";
 
@@ -38,13 +39,14 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
   const [user, setUser] = useState<AllSenderUserInfo | null>(null);
   const [bootstrap, setBootstrap] = useState<BootstrapResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const biometricCheckedRef = useRef(false);
 
   const hydrate = useCallback(async () => {
     setError(null);
-    // A browser preview without the public app identifier cannot have a
-    // session, and should open the friendly sign-in state instead of making a
-    // cross-origin request that browsers reject before rendering anything.
-    if (Platform.OS === "web" && !ALLSENDER_CLIENT_ID) {
+    // The published contract is a native HttpOnly-cookie flow. A browser
+    // preview cannot reuse that native cookie jar and would only produce a
+    // misleading CORS/Failed to fetch error, so keep the preview signed out.
+    if (Platform.OS === "web") {
       setUser(null);
       setBootstrap(null);
       setStatus("signed_out");
@@ -84,6 +86,29 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
         },
       };
 
+      if (!biometricCheckedRef.current && (Platform.OS === "ios" || Platform.OS === "android")) {
+        const preferences = await loadPreferences();
+        if (preferences.biometricEnabled) {
+          const [hasHardware, isEnrolled] = await Promise.all([
+            LocalAuthentication.hasHardwareAsync(),
+            LocalAuthentication.isEnrolledAsync(),
+          ]);
+          if (hasHardware && isEnrolled) {
+            const biometricResult = await LocalAuthentication.authenticateAsync({
+              promptMessage: "Confirmar acceso a AllSender Mobile",
+              cancelLabel: "Cancelar",
+              disableDeviceFallback: false,
+            });
+            if (!biometricResult.success) {
+              setError("Confirma tu identidad con huella, Face ID o el bloqueo del teléfono para continuar.");
+              setStatus("signed_out");
+              return;
+            }
+          }
+        }
+        biometricCheckedRef.current = true;
+      }
+
       await setCachedUserInfo(normalized);
       setUser(normalized);
       setBootstrap(boot || {
@@ -115,6 +140,11 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
 
   const signIn = useCallback(async (email: string, password: string) => {
     setError(null);
+    if (Platform.OS === "web") {
+      setError("El acceso de AllSender Mobile se prueba en Android o iOS, no en la vista web.");
+      setStatus("signed_out");
+      return false;
+    }
     setStatus("loading");
     try {
       await signInNative(email, password);
@@ -129,6 +159,11 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
 
   const signUp = useCallback(async (name: string, email: string, password: string) => {
     setError(null);
+    if (Platform.OS === "web") {
+      setError("El registro de AllSender Mobile se prueba en Android o iOS, no en la vista web.");
+      setStatus("signed_out");
+      return false;
+    }
     setStatus("loading");
     try {
       await signUpNative(name, email, password);
@@ -143,6 +178,7 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
 
   const signOut = useCallback(async () => {
     await signOutNative();
+    biometricCheckedRef.current = false;
     setUser(null);
     setBootstrap(null);
     setError(null);

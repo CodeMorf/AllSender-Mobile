@@ -13,19 +13,24 @@ Aplicación **nativa Android/iOS** para operar conversaciones de AllSender desde
 ## Qué incluye
 
 - Login y registro **nativos** contra AllSender.
+- Logo original de AllSender en login, registro, icono y splash; tema claro/oscuro persistente.
 - Sesión HttpOnly del SaaS; la contraseña no se guarda en el dispositivo.
 - Bandeja de conversaciones con búsqueda y filtro de no leídas.
+- Inicio de nuevas conversaciones de WhatsApp desde la bandeja (número internacional).
 - Respeto de visibilidad por equipo, agente y sucursal porque la autorización sigue ocurriendo en `auth.allsender.tech`.
 - Lectura y envío de mensajes de texto.
 - Grabación y envío nativo de notas de voz.
 - Toma/asignación de chats.
+- Transferencia a miembros autorizados y actualización de notas internas CRM.
 - Marcado de leído.
 - Visualización de imagen, audio, video, documento y ubicación recibidos.
 - Integración de los endpoints reales de envío de media/audio/ubicación en `lib/allsender/api.ts`.
 - Sincronización automática de foreground contra `/api/chat-mobile/*`.
 - Push Expo, sonido y vibración configurables.
+- Huella/Face ID opcional para proteger la sesión desde Ajustes.
 - Deep link desde notificaciones hacia la conversación.
 - Pantalla de cuenta, equipo y estado de conexión.
+- Pantalla de gestión con capacidades, canales conectados, departamentos y clientes visibles según el equipo.
 - Colección Postman real en `postman/`.
 
 ## Arquitectura actual

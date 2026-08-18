@@ -9,7 +9,7 @@ const config: ExpoConfig = {
   slug: "allsender-mobile",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/images/icon.png",
+  icon: "./assets/images/allsender-logo-original.png",
   scheme: deepLinkScheme,
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
@@ -26,7 +26,7 @@ const config: ExpoConfig = {
     versionCode: 1,
     adaptiveIcon: {
       backgroundColor: "#123047",
-      foregroundImage: "./assets/images/android-icon-foreground.png",
+      foregroundImage: "./assets/images/allsender-logo-original.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
@@ -52,9 +52,21 @@ const config: ExpoConfig = {
       { microphonePermission: "Permite a AllSender Mobile usar el micrófono para enviar notas de voz." },
     ],
     [
+      "expo-image-picker",
+      { photosPermission: "Permite a AllSender Mobile seleccionar imágenes y videos para enviarlos al chat." },
+    ],
+    [
+      "expo-location",
+      { locationWhenInUsePermission: "Permite a AllSender Mobile compartir tu ubicación en una conversación." },
+    ],
+    [
+      "expo-local-authentication",
+      { faceIDPermission: "Permite a AllSender Mobile proteger tu sesión con Face ID o huella." },
+    ],
+    [
       "expo-splash-screen",
       {
-        image: "./assets/images/splash-icon.png",
+        image: "./assets/images/allsender-logo-original.png",
         imageWidth: 180,
         resizeMode: "contain",
         backgroundColor: "#F8FAFC",
@@ -65,7 +77,9 @@ const config: ExpoConfig = {
       "expo-build-properties",
       {
         android: {
-          buildArchs: ["armeabi-v7a", "arm64-v8a"],
+        // Include x86_64 so the internal APK can run on Android emulators as
+        // well as the ARM devices used in production QA.
+        buildArchs: ["armeabi-v7a", "arm64-v8a", "x86_64"],
           minSdkVersion: 24,
         },
       },

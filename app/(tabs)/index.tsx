@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Modal,
   Pressable,
   RefreshControl,
   Text,
@@ -15,7 +16,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { MOBILE_SYNC_INTERVAL_MS } from "@/constants/allsender";
 import { useLiveSync } from "@/hooks/use-live-sync";
-import { listChats } from "@/lib/allsender/api";
+import { listChats, startWhatsAppChat } from "@/lib/allsender/api";
 import { useAllSenderAuth } from "@/lib/allsender/auth-context";
 import { useAllSenderRealtime } from "@/lib/allsender/realtime-context";
 import type { Chat } from "@/lib/allsender/types";
@@ -45,6 +46,9 @@ export default function InboxScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [startingChat, setStartingChat] = useState(false);
   const previousRef = useRef<Map<number, { lastMessageId?: string | null; unreadCount: number }>>(new Map());
   const firstLoadRef = useRef(true);
 
@@ -109,6 +113,24 @@ export default function InboxScreen() {
   const teamName = auth.user?.team?.name || auth.bootstrap?.team?.name || "Tu equipo";
   const role = auth.user?.team?.role || auth.bootstrap?.team?.role || "miembro";
 
+  async function openNewChat() {
+    const phone = newPhone.trim();
+    if (!phone || startingChat) return;
+    setStartingChat(true);
+    setError(null);
+    try {
+      const chat = await startWhatsAppChat(phone);
+      setShowNewChat(false);
+      setNewPhone("");
+      router.push({ pathname: "/chat/[jid]", params: { jid: chat.jid, chatId: String(chat.id), instanceId: chat.instanceId ? String(chat.instanceId) : "", name: chat.name, channel: chat.channel, aiActive: "false" } });
+      void loadChats(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo iniciar la conversación.");
+    } finally {
+      setStartingChat(false);
+    }
+  }
+
   return (
     <ScreenContainer className="px-4 pt-2">
       <View className="flex-row items-start justify-between">
@@ -120,13 +142,14 @@ export default function InboxScreen() {
             <Text className="text-sm text-muted" numberOfLines={1}>{teamName} · {role} · En línea</Text>
           </View>
         </View>
-        <Pressable
-          onPress={() => router.push("/(tabs)/settings")}
-          className="h-11 w-11 items-center justify-center rounded-2xl bg-surface border border-border"
-          style={({ pressed }) => [{ opacity: pressed ? 0.65 : 1 }]}
-        >
-          <IconSymbol name="person.crop.circle.fill" size={23} color={colors.primary} />
-        </Pressable>
+        <View className="flex-row gap-2">
+          <Pressable onPress={() => setShowNewChat(true)} className="h-11 w-11 items-center justify-center rounded-2xl bg-primary" style={({ pressed }) => [{ opacity: pressed ? 0.65 : 1 }]} accessibilityLabel="Nueva conversación">
+            <IconSymbol name="plus" size={23} color={colors.foreground} />
+          </Pressable>
+          <Pressable onPress={() => router.push("/(tabs)/settings")} className="h-11 w-11 items-center justify-center rounded-2xl bg-surface border border-border" style={({ pressed }) => [{ opacity: pressed ? 0.65 : 1 }]}>
+            <IconSymbol name="person.crop.circle.fill" size={23} color={colors.primary} />
+          </Pressable>
+        </View>
       </View>
       <View className="mt-5 flex-row items-center rounded-2xl bg-surface border border-border px-4">
         <IconSymbol name="magnifyingglass" size={19} color={colors.muted} />
@@ -187,6 +210,8 @@ export default function InboxScreen() {
                 instanceId: item.instanceId ? String(item.instanceId) : "",
                 name: item.name,
                 channel: item.channel,
+                contactId: item.contactId ? String(item.contactId) : "",
+                aiActive: item.aiActive ? "true" : "false",
                 assignedAgentId: item.assignedAgentId ? String(item.assignedAgentId) : "",
                 assignedAgentName: item.assignedAgentName || "",
               },
@@ -216,6 +241,21 @@ export default function InboxScreen() {
           </Pressable>
         )}
       />
+
+      <Modal visible={showNewChat} transparent animationType="slide" onRequestClose={() => setShowNewChat(false)}>
+        <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setShowNewChat(false)}>
+          <Pressable className="rounded-t-3xl bg-background px-5 pb-8 pt-5" onPress={(event) => event.stopPropagation()}>
+            <View className="mb-3 flex-row items-center justify-between">
+              <View><Text className="text-lg font-bold text-foreground">Nueva conversación</Text><Text className="mt-1 text-sm text-muted">Escribe el número con código de país.</Text></View>
+              <Pressable onPress={() => setShowNewChat(false)}><IconSymbol name="xmark.circle.fill" size={24} color={colors.muted} /></Pressable>
+            </View>
+            <TextInput value={newPhone} onChangeText={setNewPhone} keyboardType="phone-pad" placeholder="18095551234" placeholderTextColor={colors.muted} className="rounded-2xl border border-border bg-surface px-4 py-3.5 text-foreground" />
+            <Pressable onPress={() => void openNewChat()} disabled={startingChat || !newPhone.trim()} className="mt-4 items-center rounded-2xl bg-primary px-4 py-3.5" style={({ pressed }) => [{ opacity: pressed || startingChat || !newPhone.trim() ? 0.55 : 1 }]}>
+              {startingChat ? <ActivityIndicator color={colors.foreground} /> : <Text className="font-bold text-white">Abrir chat de WhatsApp</Text>}
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenContainer>
   );
 }

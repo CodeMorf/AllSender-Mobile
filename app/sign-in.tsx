@@ -46,6 +46,7 @@ export default function SignInScreen() {
 
   const disabled =
     working ||
+    Platform.OS === "web" ||
     !ALLSENDER_CLIENT_ID ||
     !email.trim() ||
     password.length < 8 ||
@@ -61,7 +62,7 @@ export default function SignInScreen() {
         >
           <View className="pt-8">
             <View className="self-start rounded-3xl bg-surface border border-border p-3 shadow-sm">
-              <Image source={require("../assets/images/icon.png")} style={{ width: 56, height: 56 }} contentFit="contain" />
+              <Image source={require("../assets/images/allsender-logo-original.png")} style={{ width: 56, height: 56 }} contentFit="contain" />
             </View>
             <Text className="mt-7 text-xs font-bold tracking-[2.5px] text-primary">ALLSENDER MOBILE</Text>
             <Text className="mt-2 text-4xl font-bold leading-[45px] text-foreground">Todo tu equipo en una sola bandeja.</Text>
@@ -135,6 +136,20 @@ export default function SignInScreen() {
               />
             </View>
 
+            {mode === "signup" ? (
+              <View className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                <Text className="font-semibold text-foreground">Prepara tu teléfono</Text>
+                <Text className="mt-1 text-sm leading-5 text-muted">Después de crear tu cuenta podrás activar cada permiso cuando lo necesites, siempre con tu autorización.</Text>
+                <View className="mt-3 flex-row flex-wrap gap-2">
+                  {["Notificaciones", "Huella / Face ID", "Audio", "Ubicación"].map((label) => (
+                    <View key={label} className="rounded-full border border-border bg-surface px-3 py-1.5">
+                      <Text className="text-xs font-semibold text-muted">{label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
             {auth.error ? (
               <View className="mt-4 rounded-2xl border border-error/30 bg-error/10 p-3.5">
                 <Text className="text-sm leading-5 text-error">{auth.error}</Text>
@@ -146,6 +161,15 @@ export default function SignInScreen() {
                 <Text className="font-semibold text-foreground">Acceso en preparación</Text>
                 <Text className="mt-1 text-sm leading-5 text-muted">
                   El administrador aún debe activar AllSender Mobile para este equipo. Después podrás entrar con tu cuenta habitual.
+                </Text>
+              </View>
+            ) : null}
+
+            {Platform.OS === "web" ? (
+              <View className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-3.5">
+                <Text className="font-semibold text-foreground">Vista previa web</Text>
+                <Text className="mt-1 text-sm leading-5 text-muted">
+                  El acceso real usa la sesión segura de la aplicación nativa. Abre este proyecto en Android o iOS para iniciar sesión y operar tus chats.
                 </Text>
               </View>
             ) : null}

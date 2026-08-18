@@ -8,6 +8,7 @@ import { secureGet, secureSet } from "./allsender/storage";
 import { loadPreferences } from "./preferences";
 
 const DEVICE_KEY = "device.id";
+const CHAT_CHANNEL_PREFIX = "chat-alerts";
 const recentMessageAlerts = new Map<string, number>();
 const ALERT_DEDUPE_MS = 90_000;
 
@@ -32,6 +33,13 @@ function wasAlerted(messageId: string) {
   if (!messageId) return false;
   pruneAlertDedupe();
   return recentMessageAlerts.has(messageId);
+}
+
+function chatChannelId(soundEnabled: boolean, vibrationEnabled: boolean) {
+  if (soundEnabled && vibrationEnabled) return `${CHAT_CHANNEL_PREFIX}-sound-vibrate`;
+  if (soundEnabled) return `${CHAT_CHANNEL_PREFIX}-sound`;
+  if (vibrationEnabled) return `${CHAT_CHANNEL_PREFIX}-vibrate`;
+  return `${CHAT_CHANNEL_PREFIX}-silent`;
 }
 
 Notifications.setNotificationHandler({
@@ -79,8 +87,9 @@ export async function configureNotifications() {
   const preferences = await loadPreferences();
   if (!preferences.notificationsEnabled) return null;
 
+  const channelId = chatChannelId(preferences.soundEnabled, preferences.vibrationEnabled);
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("chat-alerts", {
+    await Notifications.setNotificationChannelAsync(channelId, {
       name: "Mensajes de AllSender",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: preferences.vibrationEnabled ? [0, 250, 180, 250] : [0],
@@ -119,6 +128,7 @@ export async function playLocalChatAlert(title: string, body: string, data?: Rec
       title,
       body,
       sound: preferences.soundEnabled ? "default" : undefined,
+      ...(Platform.OS === "android" ? { channelId: chatChannelId(preferences.soundEnabled, preferences.vibrationEnabled) } : {}),
       data: { ...(data || {}), __allsender_local: true },
     },
     trigger: null,

@@ -4,8 +4,10 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Linking,
+  Modal,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -14,6 +16,9 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from "expo-audio";
 import { File } from "expo-file-system";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -22,8 +27,8 @@ import { MOBILE_SYNC_INTERVAL_MS } from "@/constants/allsender";
 import { useAllSenderAuth } from "@/lib/allsender/auth-context";
 import { useAllSenderRealtime } from "@/lib/allsender/realtime-context";
 import { useLiveSync } from "@/hooks/use-live-sync";
-import { listMessages, markChatRead, sendAudio, sendText, takeChat } from "@/lib/allsender/api";
-import type { Chat, Message } from "@/lib/allsender/types";
+import { assignChatAgent, createChatContact, getChatContact, getCurrentTeam, listMessages, markChatRead, sendAudio, sendLocation, sendMedia, sendText, takeChat, toggleChatAi, updateContactNotes } from "@/lib/allsender/api";
+import type { Chat, MobileContact, Message, TeamMember } from "@/lib/allsender/types";
 
 function renderMedia(message: Message, colors: ReturnType<typeof useColors>) {
   if (!message.mediaUrl) return null;
@@ -46,16 +51,18 @@ export default function ChatScreen() {
   const realtime = useAllSenderRealtime();
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(audioRecorder);
-  const params = useLocalSearchParams<{ jid: string; chatId?: string; instanceId?: string; name?: string; channel?: string; assignedAgentId?: string; assignedAgentName?: string }>();
+  const params = useLocalSearchParams<{ jid: string; chatId?: string; instanceId?: string; contactId?: string; name?: string; channel?: string; aiActive?: string; assignedAgentId?: string; assignedAgentName?: string }>();
   const chatId = Number(params.chatId || 0);
   const chat = useMemo<Chat>(() => ({
     id: chatId,
+    contactId: params.contactId ? Number(params.contactId) : null,
     jid: String(params.jid || ""),
     instanceId: params.instanceId ? Number(params.instanceId) : null,
     name: String(params.name || params.jid || "Contacto"),
     channel: String(params.channel || "chat"),
     unreadCount: 0,
-  }), [chatId, params.channel, params.instanceId, params.jid, params.name]);
+    aiActive: params.aiActive === "true",
+  }), [chatId, params.aiActive, params.channel, params.contactId, params.instanceId, params.jid, params.name]);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
@@ -63,6 +70,17 @@ export default function ChatScreen() {
   const [sending, setSending] = useState(false);
   const [taking, setTaking] = useState(false);
   const [sendingVoice, setSendingVoice] = useState(false);
+  const [sendingMedia, setSendingMedia] = useState(false);
+  const [sharingLocation, setSharingLocation] = useState(false);
+  const [aiActive, setAiActive] = useState(chat.aiActive === true);
+  const [contact, setContact] = useState<MobileContact | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [showActions, setShowActions] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [creatingContact, setCreatingContact] = useState(false);
+  const [contactName, setContactName] = useState(chat.name);
+  const [contactNotes, setContactNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<FlatList<Message>>(null);
   const lastReadInboundRef = useRef<string | null>(null);
@@ -90,6 +108,29 @@ export default function ChatScreen() {
   }, [chat]);
 
   useEffect(() => { void loadMessages(); }, [loadMessages]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([
+      getChatContact(chat).catch(() => null),
+      getCurrentTeam().catch(() => null),
+    ]).then(([nextContact, team]) => {
+      if (cancelled) return;
+      if (nextContact) {
+        setContact(nextContact);
+        setContactName(nextContact.name || chat.name);
+        setContactNotes(nextContact.notes || "");
+      }
+      const members = (team?.teamMembers || []).map((member) => ({
+        id: Number(member.userId || member.id || 0),
+        name: member.user?.name || member.user?.email || `Usuario ${member.userId || member.id || ""}`,
+        email: member.user?.email || null,
+        role: member.role || null,
+      })).filter((member) => member.id > 0);
+      setTeamMembers(members);
+    });
+    return () => { cancelled = true; };
+  }, [chat]);
 
   useEffect(() => realtime.addListener((event) => {
     const payload: Record<string, unknown> = event.data && typeof event.data === "object"
@@ -188,6 +229,132 @@ export default function ChatScreen() {
     }
   }
 
+  async function pickAndSendMedia() {
+    if (!chat.id || sendingMedia) return;
+    setShowActions(false);
+    setError(null);
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setError("Necesitas permitir el acceso a tus fotos para adjuntar un archivo.");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: false,
+        quality: 0.85,
+        selectionLimit: 1,
+      });
+      const asset = result.canceled ? null : result.assets[0];
+      if (!asset?.uri) return;
+      setSendingMedia(true);
+      const file = new File(asset.uri);
+      const base64 = await file.base64();
+      if (base64.length > 18_000_000) throw new Error("El archivo supera el límite móvil de 12 MB.");
+      const mimeType = asset.mimeType || (asset.type === "video" ? "video/mp4" : "image/jpeg");
+      await sendMedia(chat, { base64, mimeType, fileName: asset.fileName || `allsender-${Date.now()}.${asset.type === "video" ? "mp4" : "jpg"}` });
+      await loadMessages(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo enviar la imagen o video.");
+    } finally {
+      setSendingMedia(false);
+    }
+  }
+
+  async function pickAndSendDocument() {
+    if (!chat.id || sendingMedia) return;
+    setShowActions(false);
+    setError(null);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true, multiple: false, type: "*/*" });
+      const asset = result.canceled ? null : result.assets[0];
+      if (!asset?.uri) return;
+      setSendingMedia(true);
+      const file = new File(asset.uri);
+      const base64 = await file.base64();
+      if (base64.length > 18_000_000) throw new Error("El documento supera el límite móvil de 12 MB.");
+      await sendMedia(chat, { base64, mimeType: asset.mimeType || "application/octet-stream", fileName: asset.name || `documento-${Date.now()}` });
+      await loadMessages(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo enviar el documento.");
+    } finally {
+      setSendingMedia(false);
+    }
+  }
+
+  async function shareLocation() {
+    if (!chat.id || sharingLocation) return;
+    setShowActions(false);
+    setError(null);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        setError("Necesitas permitir la ubicación para compartirla en el chat.");
+        return;
+      }
+      setSharingLocation(true);
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      await sendLocation(chat, {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        name: "Ubicación compartida",
+      });
+      await loadMessages(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo compartir la ubicación.");
+    } finally {
+      setSharingLocation(false);
+    }
+  }
+
+  async function toggleAi() {
+    if (!chat.id) return;
+    setShowActions(false);
+    try {
+      const enabled = !aiActive;
+      await toggleChatAi(chat.id, chat.instanceId, enabled);
+      setAiActive(enabled);
+      await loadMessages(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo actualizar la IA de este chat.");
+    }
+  }
+
+  async function transferTo(agentId: number | null) {
+    setShowTransfer(false);
+    if (!agentId && !contact?.id) return;
+    try {
+      let contactId = contact?.id;
+      if (!contactId) {
+        const created = await createChatContact({ jid: chat.jid, name: contactName.trim() || chat.name });
+        contactId = created.id;
+        setContact(created);
+      }
+      await assignChatAgent(contactId, agentId);
+      setError(agentId ? "Conversación transferida correctamente." : "Conversación quedó sin asignar.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo transferir la conversación.");
+    }
+  }
+
+  async function saveContact() {
+    const name = contactName.trim();
+    if (!name || creatingContact) return;
+    setCreatingContact(true);
+    try {
+      const saved = contact?.id
+        ? await updateContactNotes(contact.id, contactNotes.trim())
+        : await createChatContact({ jid: chat.jid, name, notes: contactNotes.trim() });
+      setContact(saved);
+      setShowContact(false);
+      setError(contact?.id ? "Nota del cliente actualizada en CRM." : "Cliente guardado en CRM.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo guardar el cliente.");
+    } finally {
+      setCreatingContact(false);
+    }
+  }
+
   return (
     <ScreenContainer edges={["top", "left", "right", "bottom"]}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -203,6 +370,12 @@ export default function ChatScreen() {
             <Text className="font-semibold text-foreground" numberOfLines={1}>{chat.name}</Text>
             <View className="mt-0.5 flex-row items-center"><View className={`mr-1.5 h-1.5 w-1.5 rounded-full bg-success`} /><Text className="text-xs text-muted">Sincronización activa · {chat.channel}</Text></View>
           </View>
+          <Pressable onPress={() => void toggleAi()} className={`mr-1 h-10 w-10 items-center justify-center rounded-xl ${aiActive ? "bg-primary/15" : "bg-surface"}`} accessibilityLabel={aiActive ? "Pausar inteligencia artificial" : "Activar inteligencia artificial"}>
+            <IconSymbol name="sparkles" size={19} color={aiActive ? colors.primary : colors.muted} />
+          </Pressable>
+          <Pressable onPress={() => setShowActions(true)} className="h-10 w-10 items-center justify-center rounded-xl bg-surface" accessibilityLabel="Acciones del chat">
+            <IconSymbol name="ellipsis.circle" size={22} color={colors.foreground} />
+          </Pressable>
           {params.assignedAgentId && Number(params.assignedAgentId) === Number(auth.user?.sub || 0) ? (
             <View className="rounded-xl bg-success/10 px-3 py-2"><Text className="text-xs font-bold text-success">Asignado a ti</Text></View>
           ) : params.assignedAgentId ? (
@@ -244,6 +417,9 @@ export default function ChatScreen() {
         />
 
         <View className="flex-row items-end border-t border-border bg-background px-3 py-3">
+          <Pressable onPress={() => setShowActions(true)} disabled={sendingMedia || sharingLocation} className="mr-1 h-11 w-11 items-center justify-center rounded-full bg-surface border border-border" accessibilityLabel="Adjuntar contenido">
+            {sendingMedia || sharingLocation ? <ActivityIndicator size="small" color={colors.primary} /> : <IconSymbol name="plus" size={21} color={colors.primary} />}
+          </Pressable>
           <TextInput
             value={text}
             onChangeText={setText}
@@ -276,6 +452,72 @@ export default function ChatScreen() {
             </Pressable>
           )}
         </View>
+
+        <Modal visible={showActions} transparent animationType="slide" onRequestClose={() => setShowActions(false)}>
+          <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setShowActions(false)}>
+            <Pressable className="rounded-t-3xl bg-background px-5 pb-8 pt-5" onPress={(event) => event.stopPropagation()}>
+              <View className="mb-4 flex-row items-center justify-between">
+                <Text className="text-lg font-bold text-foreground">Acciones de la conversación</Text>
+                <Pressable onPress={() => setShowActions(false)}><IconSymbol name="xmark.circle.fill" size={24} color={colors.muted} /></Pressable>
+              </View>
+              <View className="flex-row flex-wrap gap-3">
+                <Pressable onPress={() => void pickAndSendMedia()} className="w-[30%] items-center rounded-2xl border border-border bg-surface px-2 py-4">
+                  <IconSymbol name="photo.fill" size={25} color={colors.primary} /><Text className="mt-2 text-center text-xs font-semibold text-foreground">Imagen o video</Text>
+                </Pressable>
+                <Pressable onPress={() => void pickAndSendDocument()} className="w-[30%] items-center rounded-2xl border border-border bg-surface px-2 py-4">
+                  <IconSymbol name="doc.fill" size={25} color={colors.primary} /><Text className="mt-2 text-center text-xs font-semibold text-foreground">Documento</Text>
+                </Pressable>
+                <Pressable onPress={() => void shareLocation()} className="w-[30%] items-center rounded-2xl border border-border bg-surface px-2 py-4">
+                  <IconSymbol name="location.fill" size={25} color={colors.primary} /><Text className="mt-2 text-center text-xs font-semibold text-foreground">Ubicación</Text>
+                </Pressable>
+                <Pressable onPress={() => { setShowActions(false); setShowTransfer(true); }} className="w-[30%] items-center rounded-2xl border border-border bg-surface px-2 py-4">
+                  <IconSymbol name="person.2" size={25} color={colors.primary} /><Text className="mt-2 text-center text-xs font-semibold text-foreground">Transferir</Text>
+                </Pressable>
+                <Pressable onPress={() => { setShowActions(false); setShowContact(true); }} className="w-[30%] items-center rounded-2xl border border-border bg-surface px-2 py-4">
+                  <IconSymbol name="person.badge.plus" size={25} color={colors.primary} /><Text className="mt-2 text-center text-xs font-semibold text-foreground">Cliente / CRM</Text>
+                </Pressable>
+                <Pressable onPress={() => void toggleAi()} className="w-[30%] items-center rounded-2xl border border-border bg-surface px-2 py-4">
+                  <IconSymbol name="sparkles" size={25} color={aiActive ? colors.primary : colors.muted} /><Text className="mt-2 text-center text-xs font-semibold text-foreground">{aiActive ? "Pausar IA" : "Activar IA"}</Text>
+                </Pressable>
+              </View>
+              {contact ? <Text className="mt-4 text-xs text-muted">CRM: {contact.name}{contact.assignedUser?.name ? ` · ${contact.assignedUser.name}` : " · sin asignar"}</Text> : <Text className="mt-4 text-xs text-muted">Este contacto aún no está guardado en CRM.</Text>}
+            </Pressable>
+          </Pressable>
+        </Modal>
+
+        <Modal visible={showTransfer} transparent animationType="slide" onRequestClose={() => setShowTransfer(false)}>
+          <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setShowTransfer(false)}>
+            <Pressable className="max-h-[75%] rounded-t-3xl bg-background px-5 pb-8 pt-5" onPress={(event) => event.stopPropagation()}>
+              <Text className="mb-1 text-lg font-bold text-foreground">Transferir conversación</Text>
+              <Text className="mb-4 text-sm text-muted">Selecciona un miembro autorizado de tu equipo.</Text>
+              <ScrollView>
+                {teamMembers.map((member) => (
+                  <Pressable key={member.id} onPress={() => void transferTo(member.id)} className="mb-2 flex-row items-center rounded-2xl border border-border bg-surface px-4 py-3">
+                    <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10"><Text className="font-bold text-primary">{member.name.slice(0, 1).toUpperCase()}</Text></View>
+                    <View className="ml-3 flex-1"><Text className="font-semibold text-foreground">{member.name}</Text><Text className="text-xs text-muted">{member.role || member.email || "Miembro del equipo"}</Text></View>
+                  </Pressable>
+                ))}
+                <Pressable onPress={() => void transferTo(null)} className="mt-2 rounded-2xl border border-error/25 bg-error/10 px-4 py-3"><Text className="text-center font-semibold text-error">Dejar sin asignar</Text></Pressable>
+              </ScrollView>
+            </Pressable>
+          </Pressable>
+        </Modal>
+
+        <Modal visible={showContact} transparent animationType="slide" onRequestClose={() => setShowContact(false)}>
+          <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setShowContact(false)}>
+            <Pressable className="rounded-t-3xl bg-background px-5 pb-8 pt-5" onPress={(event) => event.stopPropagation()}>
+              <Text className="mb-1 text-lg font-bold text-foreground">{contact ? "Cliente en CRM" : "Nuevo cliente"}</Text>
+              <Text className="mb-4 text-sm text-muted">Guarda los datos para que todo el equipo los vea según sus permisos.</Text>
+              <Text className="mb-1 text-xs font-semibold text-muted">Nombre</Text>
+              <TextInput value={contactName} onChangeText={setContactName} editable={!contact} className="mb-3 rounded-2xl border border-border bg-surface px-4 py-3 text-foreground" placeholder="Nombre del cliente" placeholderTextColor={colors.muted} />
+              <Text className="mb-1 text-xs font-semibold text-muted">Nota interna</Text>
+              <TextInput value={contactNotes} onChangeText={setContactNotes} multiline className="min-h-20 rounded-2xl border border-border bg-surface px-4 py-3 text-foreground" placeholder="Información útil para el equipo" placeholderTextColor={colors.muted} />
+              <Pressable onPress={() => void saveContact()} disabled={creatingContact} className="mt-4 items-center rounded-2xl bg-primary px-4 py-3.5">
+                {creatingContact ? <ActivityIndicator color={colors.foreground} /> : <Text className="font-bold text-white">{contact ? "Contacto guardado" : "Guardar cliente"}</Text>}
+              </Pressable>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </KeyboardAvoidingView>
     </ScreenContainer>
   );

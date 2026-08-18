@@ -37,6 +37,14 @@ const MAPPING = {
   "plus": "add",
   "mic.fill": "mic",
   "stop.fill": "stop",
+  "location.fill": "location-on",
+  "photo.fill": "photo-library",
+  "doc.fill": "description",
+  "sparkles": "auto-awesome",
+  "person.2": "group",
+  "person.badge.plus": "person-add",
+  "ellipsis.circle": "more-horiz",
+  "briefcase.fill": "business-center",
 } as IconMapping;
 
 /**

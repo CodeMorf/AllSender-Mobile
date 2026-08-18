@@ -35,7 +35,9 @@ Leyenda: `✅ terminado` · `🟡 depende de configuración/QA` · `🔵 depende
 - ✅ render imagen/audio/video/documento/ubicación recibida.
 - ✅ helpers reales para sendMedia/sendAudio/send-location.
 - ✅ grabación y envío de nota de voz desde la UI nativa.
-- 🟡 selector visual de galería/video/documento y ubicación actual pendiente de dependencias/permisos + QA físico.
+- ✅ selector nativo de imagen/video/documento y ubicación actual (permisos solicitados en el dispositivo).
+- ✅ acción para iniciar una nueva conversación de WhatsApp desde la bandeja.
+- ✅ cliente CRM: alta desde el chat y actualización de nota interna.
 
 ## R4 — Notificaciones
 - ✅ preferencias notificación/sonido/vibración.
@@ -44,6 +46,10 @@ Leyenda: `✅ terminado` · `🟡 depende de configuración/QA` · `🔵 depende
 - ✅ alerta local foreground.
 - ✅ deduplicación por `messageId`.
 - ✅ deep link al chat.
+- ✅ configuración de permisos de galería, ubicación y notificaciones en `app.config.ts`.
+- ✅ logo original de AllSender en login/registro, icono y splash.
+- ✅ tema claro/oscuro persistente.
+- ✅ huella/Face ID opcional con confirmación nativa y protección de la sesión.
 - 🟡 configurar `EXPO_PUBLIC_EAS_PROJECT_ID`.
 - 🟡 QA development/release build en Android físico.
 - 🟡 QA development/release build en iOS físico.

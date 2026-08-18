@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Appearance, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { colorScheme as nativewindColorScheme, vars } from "nativewind";
 
 import { SchemeColors, type ColorScheme } from "@/constants/theme";
@@ -9,12 +10,13 @@ type ThemeContextValue = {
   setColorScheme: (scheme: ColorScheme) => void;
 };
 
+const THEME_KEY = "allsender.mobile.theme.v1";
+
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // AllSender Mobile follows the dark, high-contrast product surface shown
-  // in the mobile design. A future preference can still switch the palette.
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>("dark");
+  const systemScheme: ColorScheme = Appearance.getColorScheme() === "light" ? "light" : "dark";
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(systemScheme);
 
   const applyScheme = useCallback((scheme: ColorScheme) => {
     nativewindColorScheme.set(scheme);
@@ -33,11 +35,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setColorScheme = useCallback((scheme: ColorScheme) => {
     setColorSchemeState(scheme);
     applyScheme(scheme);
+    void AsyncStorage.setItem(THEME_KEY, scheme).catch(() => undefined);
   }, [applyScheme]);
 
   useEffect(() => {
     applyScheme(colorScheme);
   }, [applyScheme, colorScheme]);
+
+  useEffect(() => {
+    void AsyncStorage.getItem(THEME_KEY).then((stored) => {
+      if (stored === "light" || stored === "dark") setColorSchemeState(stored);
+    }).catch(() => undefined);
+  }, []);
 
   const themeVariables = useMemo(
     () =>

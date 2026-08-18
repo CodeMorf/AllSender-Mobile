@@ -1,5 +1,5 @@
 import { ALLSENDER_BASE_URL } from "@/constants/allsender";
-import type { BootstrapResponse, Chat, Message, TeamResponse } from "./types";
+import type { BootstrapResponse, Chat, Department, MobileAppShell, MobileContact, Message, MobileOrder, MobileRealtimeConfig, MobileReservation, RestappOrder, TeamMember, TeamResponse } from "./types";
 
 export class AllSenderApiError extends Error {
   constructor(public readonly status: number, message: string, public readonly code?: string) {
@@ -66,11 +66,68 @@ export async function getBootstrap(): Promise<BootstrapResponse> {
   return request<BootstrapResponse>("/api/chat-mobile/bootstrap");
 }
 
+export async function getMobileAppShell(locale = "es"): Promise<MobileAppShell> {
+  return request<MobileAppShell>(`/api/mobile/app-shell?locale=${encodeURIComponent(locale)}`);
+}
+
+export async function getMobileRealtimeConfig(): Promise<MobileRealtimeConfig> {
+  return request<MobileRealtimeConfig>("/api/mobile/realtime/config");
+}
+
+export async function listMobileOrders(params: { status?: string; limit?: number } = {}): Promise<MobileOrder[]> {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.limit) query.set("limit", String(params.limit));
+  const payload = await request<{ ok?: boolean; data?: MobileOrder[] }>(`/api/mobile/orders${query.toString() ? `?${query}` : ""}`);
+  return Array.isArray(payload?.data) ? payload.data : [];
+}
+
+export async function updateMobileOrder(id: number, input: Record<string, unknown>) {
+  return request<{ ok?: boolean; data?: MobileOrder }>(`/api/mobile/orders/${encodeURIComponent(String(id))}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function listMobileReservations(limit = 50): Promise<MobileReservation[]> {
+  const payload = await request<{ ok?: boolean; bookings?: MobileReservation[]; data?: MobileReservation[] }>(`/api/mobile/reservations?limit=${encodeURIComponent(String(limit))}`);
+  const rows = payload?.bookings || payload?.data;
+  return Array.isArray(rows) ? rows : [];
+}
+
+export async function listMobileRestappOrders(params: { status?: string; limit?: number } = {}): Promise<RestappOrder[]> {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.limit) query.set("limit", String(params.limit));
+  const payload = await request<{ ok?: boolean; data?: RestappOrder[] }>(`/api/mobile/restapp/orders${query.toString() ? `?${query}` : ""}`);
+  return Array.isArray(payload?.data) ? payload.data : [];
+}
+
+export async function updateMobileRestappOrderStatus(id: number, status: string) {
+  return request<{ ok?: boolean; data?: RestappOrder }>("/api/mobile/restapp/orders", {
+    method: "PATCH",
+    body: JSON.stringify({ id, status }),
+  });
+}
+
+export async function getActiveModules() {
+  return request<Record<string, unknown>>("/api/modules/active");
+}
+
 export async function listChats(): Promise<Chat[]> {
   const payload = await request<{ ok?: boolean; chats?: Chat[]; teamRole?: string; canSeeAll?: boolean }>(
     "/api/chat-mobile/chats",
   );
   return Array.isArray(payload?.chats) ? payload.chats : [];
+}
+
+export async function startWhatsAppChat(phone: string): Promise<Chat> {
+  const payload = await request<{ ok?: boolean; chat?: Chat }>('/api/chat-mobile/start-whatsapp', {
+    method: 'POST',
+    body: JSON.stringify({ phone }),
+  });
+  if (!payload?.chat) throw new Error('No se pudo iniciar la conversación.');
+  return payload.chat;
 }
 
 export async function listMessages(chat: Pick<Chat, "id" | "jid" | "instanceId">): Promise<Message[]> {
@@ -125,6 +182,52 @@ export async function takeChat(chat: Pick<Chat, "id" | "jid" | "instanceId">) {
       source: "mobile",
     }),
   });
+}
+
+export async function getChatContact(chat: Pick<Chat, "id" | "jid" | "instanceId">): Promise<MobileContact | null> {
+  const params = new URLSearchParams({ chatId: String(chat.id), jid: chat.jid });
+  if (chat.instanceId) params.set("instanceId", String(chat.instanceId));
+  return request<MobileContact | null>(`/api/contacts/by-chat?${params.toString()}`);
+}
+
+export async function createChatContact(input: {
+  jid: string;
+  name: string;
+  notes?: string;
+  assignedUserId?: number | null;
+}): Promise<MobileContact> {
+  return request<MobileContact>("/api/contacts", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function listContacts(): Promise<MobileContact[]> {
+  const payload = await request<MobileContact[]>("/api/contacts/list");
+  return Array.isArray(payload) ? payload : [];
+}
+
+export async function assignChatAgent(contactId: number, agentId: number | null) {
+  return request<MobileContact>(`/api/contacts/${contactId}/assign-agent`, {
+    method: "PUT",
+    body: JSON.stringify({ agentId }),
+  });
+}
+
+export async function updateContactNotes(contactId: number, notes: string) {
+  return request<MobileContact>(`/api/contacts/${contactId}/notes`, {
+    method: 'PUT',
+    body: JSON.stringify({ notes }),
+  });
+}
+
+export async function getDepartments(): Promise<{ isActive?: boolean; departments: Department[]; members?: TeamMember[] }> {
+  const payload = await request<{ isActive?: boolean; departments?: Department[]; members?: TeamMember[] }>("/api/departments");
+  return { ...payload, departments: Array.isArray(payload?.departments) ? payload.departments : [], members: Array.isArray(payload?.members) ? payload.members : [] };
+}
+
+export async function getCrmBootstrap() {
+  return request<{ ok?: boolean; crm?: { contacts?: MobileContact[]; funnels?: unknown[]; metrics?: Record<string, number> } | null }>("/api/chat-mobile/crm/bootstrap");
 }
 
 export async function sendMedia(

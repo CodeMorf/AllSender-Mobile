@@ -115,3 +115,98 @@ export type Message = {
   timestamp?: string | null;
   status?: string | null;
 };
+
+export type TeamMember = {
+  id: number;
+  name: string;
+  email?: string | null;
+  role?: string | null;
+};
+
+export type MobileModule = {
+  key: string;
+  label: string;
+  route: string;
+  group: string;
+  enabled: boolean;
+};
+
+export type MobileAppShell = {
+  ok: boolean;
+  user: { id: number; name?: string | null; email?: string | null; role?: string | null };
+  team: { id: number; name: string; planId?: number | null };
+  permissions?: Record<string, boolean>;
+  navigation?: { home?: string; login?: string; chatMobile?: string };
+  modules: MobileModule[];
+  socialAccounts?: Array<{ platform: string; name: string; status: string }>;
+  counters?: Record<string, number>;
+};
+
+export type MobileRealtimeConfig = {
+  ok?: boolean;
+  enabled?: boolean;
+  provider?: "pusher";
+  key?: string | null;
+  cluster?: string | null;
+  channel?: string | null;
+  events?: string[];
+};
+
+export type MobileOrder = {
+  id: number;
+  order_number?: string | null;
+  status?: string | null;
+  channel?: string | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  total?: number | string | null;
+  payment_status?: string | null;
+  shipment_status?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type RestappOrder = {
+  id: number;
+  order_number?: string | null;
+  status?: string | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  total?: number | string | null;
+  currency?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type MobileReservation = {
+  id: number;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  serviceName?: string | null;
+  startAt?: string | null;
+  endAt?: string | null;
+  reservedAt?: string | null;
+  status?: string | null;
+  partySize?: number | null;
+};
+
+export type MobileContact = {
+  id: number;
+  chatId?: number | null;
+  name: string;
+  phone?: string | null;
+  notes?: string | null;
+  assignedUserId?: number | null;
+  assignedUser?: { id?: number; name?: string | null; email?: string | null } | null;
+  tags?: Array<{ id?: number; name?: string; color?: string }>;
+  funnelStage?: { id?: number; name?: string } | null;
+};
+
+export type Department = {
+  id?: string | number;
+  code?: string;
+  name: string;
+  description?: string | null;
+  memberUserIds?: number[];
+  isActive?: boolean;
+};

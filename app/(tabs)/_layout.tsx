@@ -46,6 +46,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Bandeja", tabBarIcon: ({ color }) => <IconSymbol size={24} name="tray.full.fill" color={color} /> }} />
+      <Tabs.Screen name="manage" options={{ title: "Gestión", tabBarIcon: ({ color }) => <IconSymbol size={24} name="briefcase.fill" color={color} /> }} />
       <Tabs.Screen name="settings" options={{ title: "Cuenta", tabBarIcon: ({ color }) => <IconSymbol size={24} name="person.crop.circle.fill" color={color} /> }} />
     </Tabs>
   );

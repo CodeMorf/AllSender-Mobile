@@ -6,12 +6,14 @@ export type MobilePreferences = {
   soundEnabled: boolean;
   vibrationEnabled: boolean;
   notificationsEnabled: boolean;
+  biometricEnabled: boolean;
 };
 
 export const DEFAULT_PREFERENCES: MobilePreferences = {
   soundEnabled: true,
   vibrationEnabled: true,
   notificationsEnabled: true,
+  biometricEnabled: false,
 };
 
 export async function loadPreferences(): Promise<MobilePreferences> {

@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import * as LocalAuthentication from "expo-local-authentication";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { useThemeContext } from "@/lib/theme-provider";
 import { useAllSenderAuth } from "@/lib/allsender/auth-context";
 import { configureNotifications, playLocalChatAlert } from "@/lib/notifications";
 import { DEFAULT_PREFERENCES, loadPreferences, savePreferences, type MobilePreferences } from "@/lib/preferences";
 
 export default function SettingsScreen() {
   const colors = useColors();
+  const { colorScheme, setColorScheme } = useThemeContext();
   const router = useRouter();
   const auth = useAllSenderAuth();
   const [preferences, setPreferences] = useState<MobilePreferences>(DEFAULT_PREFERENCES);
@@ -21,6 +24,32 @@ export default function SettingsScreen() {
     setPreferences(next);
     await savePreferences(next);
     if (next.notificationsEnabled) void configureNotifications().catch(() => undefined);
+  }
+
+  async function updateBiometric(nextValue: boolean) {
+    if (!nextValue) {
+      await updatePreferences({ ...preferences, biometricEnabled: false });
+      return;
+    }
+    if (Platform.OS !== "ios" && Platform.OS !== "android") {
+      Alert.alert("Disponible en el teléfono", "La huella o Face ID se activa desde Android o iOS.");
+      return;
+    }
+    const [hasHardware, isEnrolled] = await Promise.all([
+      LocalAuthentication.hasHardwareAsync(),
+      LocalAuthentication.isEnrolledAsync(),
+    ]);
+    if (!hasHardware || !isEnrolled) {
+      Alert.alert("Configura la seguridad del teléfono", "Añade una huella, Face ID o un código de bloqueo en tu dispositivo e inténtalo de nuevo.");
+      return;
+    }
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Proteger sesión de AllSender Mobile",
+      cancelLabel: "Cancelar",
+      disableDeviceFallback: false,
+    });
+    if (!result.success) return;
+    await updatePreferences({ ...preferences, biometricEnabled: true });
   }
 
   function confirmLogout() {
@@ -65,6 +94,19 @@ export default function SettingsScreen() {
           <Pressable onPress={() => void playLocalChatAlert("AllSender Mobile", "Así sonará una alerta de chat.")} className="mt-4 items-center rounded-2xl border border-border bg-background px-4 py-3">
             <Text className="font-semibold text-primary">Probar alerta</Text>
           </Pressable>
+        </View>
+
+        <View className="mt-4 rounded-3xl bg-surface border border-border p-5">
+          <Text className="text-base font-semibold text-foreground">Apariencia</Text>
+          <Text className="mt-1 text-sm leading-5 text-muted">Elige cómo quieres ver AllSender Mobile. La preferencia queda guardada en este dispositivo.</Text>
+          <View className="mt-4 flex-row items-center justify-between"><View><Text className="font-medium text-foreground">Modo oscuro</Text><Text className="text-xs text-muted">Usar fondo oscuro y alto contraste</Text></View><Switch value={colorScheme === "dark"} onValueChange={(value) => setColorScheme(value ? "dark" : "light")} trackColor={{ false: colors.border, true: colors.primary }} /></View>
+          <View className="mt-3 flex-row items-center"><View className="h-3 w-3 rounded-full bg-primary" /><Text className="ml-2 text-xs text-muted">Logo y colores corporativos visibles en claro y oscuro.</Text></View>
+        </View>
+
+        <View className="mt-4 rounded-3xl bg-surface border border-border p-5">
+          <Text className="text-base font-semibold text-foreground">Seguridad del acceso</Text>
+          <Text className="mt-1 text-sm leading-5 text-muted">Protege el acceso a AllSender con huella, Face ID o el bloqueo del teléfono.</Text>
+          <View className="mt-4 flex-row items-center justify-between"><View className="flex-1 pr-4"><Text className="font-medium text-foreground">Huella / Face ID</Text><Text className="text-xs text-muted">Se solicitará al abrir una sesión protegida.</Text></View><Switch value={preferences.biometricEnabled} onValueChange={(value) => void updateBiometric(value)} trackColor={{ false: colors.border, true: colors.primary }} /></View>
         </View>
 
         <View className="mt-4 rounded-3xl bg-surface border border-border p-5">

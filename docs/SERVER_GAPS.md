@@ -15,11 +15,16 @@ POST /api/mobile/team/switch
 
 sin confiar en un `team_id` arbitrario del cliente.
 
-## 2. Realtime Pusher privado
+## 2. Realtime Pusher
 
-La colección auditada indica que no existe `/api/pusher/auth` publicado. Por eso el release actual usa sincronización foreground contra la API real y push en background.
+La app móvil ya puede leer `/api/mobile/realtime/config` y suscribirse al canal
+de eventos del equipo. El servidor publica actualmente el canal existente
+`team-{teamId}` y el cliente conserva polling como fallback.
 
-Para WebSocket/Pusher verdadero debe existir un endpoint de autenticación de canal privado que valide usuario/equipo y devuelva la firma de Pusher.
+El canal sigue siendo público en Pusher; para endurecerlo completamente se debe
+migrar la publicación del servidor a `private-team-{teamId}` y añadir firma de
+canal privado. No se debe presentar esa migración como completada hasta probar
+eventos con aislamiento entre dos equipos.
 
 ## 3. OAuth token público sin secret
 
