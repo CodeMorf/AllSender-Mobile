@@ -17,6 +17,7 @@ type AuthContextValue = {
   error: string | null;
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (name: string, email: string, password: string) => Promise<boolean>;
+  unlockWithBiometrics: () => Promise<boolean>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -176,6 +177,64 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
     }
   }, [hydrate]);
 
+  const unlockWithBiometrics = useCallback(async () => {
+    setError(null);
+    if (Platform.OS !== "ios" && Platform.OS !== "android") {
+      setError("La huella o Face ID solo está disponible en Android o iOS.");
+      setStatus("signed_out");
+      return false;
+    }
+
+    const cached = await getCachedUserInfo();
+    if (!cached) {
+      setError("Inicia sesión con tu correo y contraseña para activar la huella.");
+      setStatus("signed_out");
+      return false;
+    }
+
+    let hasHardware = false;
+    let isEnrolled = false;
+    try {
+      [hasHardware, isEnrolled] = await Promise.all([
+        LocalAuthentication.hasHardwareAsync(),
+        LocalAuthentication.isEnrolledAsync(),
+      ]);
+    } catch {
+      setError("No pudimos comprobar la seguridad del teléfono. Usa tu contraseña para entrar.");
+      setStatus("signed_out");
+      return false;
+    }
+    if (!hasHardware || !isEnrolled) {
+      setError("Configura la huella, Face ID o el bloqueo del teléfono e inténtalo de nuevo.");
+      setStatus("signed_out");
+      return false;
+    }
+
+    let biometricResult: LocalAuthentication.LocalAuthenticationResult;
+    try {
+      biometricResult = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Confirmar acceso a AllSender Mobile",
+        cancelLabel: "Cancelar",
+        disableDeviceFallback: false,
+      });
+    } catch {
+      setError("No pudimos abrir la huella o Face ID. Usa tu contraseña para entrar.");
+      setStatus("signed_out");
+      return false;
+    }
+    if (!biometricResult.success) {
+      setError("No se confirmó la identidad. Puedes intentarlo de nuevo o usar tu contraseña.");
+      setStatus("signed_out");
+      return false;
+    }
+
+    // The session cookie is still the source of authorization. The biometric
+    // only unlocks the cached session; hydrate verifies that cookie again.
+    biometricCheckedRef.current = true;
+    await hydrate();
+    return true;
+  }, [hydrate]);
+
   const signOut = useCallback(async () => {
     await signOutNative();
     biometricCheckedRef.current = false;
@@ -192,6 +251,7 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
     error,
     signIn,
     signUp,
+    unlockWithBiometrics,
     signOut,
     refresh: hydrate,
   }), [bootstrap, error, hydrate, signIn, signOut, signUp, status, user]);

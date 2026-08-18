@@ -28,6 +28,7 @@ const MAPPING = {
   "person.2.fill": "group",
   "bubble.left.and.bubble.right.fill": "forum",
   "lock.shield.fill": "verified-user",
+  "faceid": "fingerprint",
   "xmark.circle.fill": "cancel",
   "checkmark.circle.fill": "check-circle",
   "checkmark.shield.fill": "verified",

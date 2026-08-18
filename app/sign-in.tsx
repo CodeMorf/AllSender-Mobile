@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import * as LocalAuthentication from "expo-local-authentication";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -17,6 +18,8 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ALLSENDER_CLIENT_ID } from "@/constants/allsender";
 import { useColors } from "@/hooks/use-colors";
 import { useAllSenderAuth } from "@/lib/allsender/auth-context";
+import { getCachedUserInfo } from "@/lib/allsender/session";
+import { loadPreferences } from "@/lib/preferences";
 
 type Mode = "login" | "signup";
 
@@ -29,6 +32,25 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [working, setWorking] = useState(false);
+  const [biometricReady, setBiometricReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    void (async () => {
+      if (Platform.OS !== "ios" && Platform.OS !== "android") {
+        if (mounted) setBiometricReady(false);
+        return;
+      }
+      const [preferences, cached, hasHardware, isEnrolled] = await Promise.all([
+        loadPreferences(),
+        getCachedUserInfo(),
+        LocalAuthentication.hasHardwareAsync(),
+        LocalAuthentication.isEnrolledAsync(),
+      ]);
+      if (mounted) setBiometricReady(Boolean(preferences.biometricEnabled && cached && hasHardware && isEnrolled));
+    })();
+    return () => { mounted = false; };
+  }, [auth.status]);
 
   async function submit() {
     const cleanEmail = email.trim();
@@ -185,6 +207,29 @@ export default function SignInScreen() {
                 {mode === "login" ? "Entrar a AllSender" : "Crear mi cuenta"}
               </Text>
             </Pressable>
+
+            {biometricReady && auth.status !== "authenticated" ? (
+              <Pressable
+                disabled={working}
+                onPress={() => void (async () => {
+                  setWorking(true);
+                  try {
+                    const ok = await auth.unlockWithBiometrics();
+                    if (ok) router.replace("/(tabs)");
+                  } catch {
+                    // Keep the login screen usable if the native biometric
+                    // module rejects (for example after a lockout).
+                  } finally {
+                    setWorking(false);
+                  }
+                })()}
+                className="mt-3 h-12 flex-row items-center justify-center rounded-2xl border border-primary bg-primary/5 px-5"
+                style={({ pressed }) => [{ opacity: pressed || working ? 0.55 : 1 }]}
+              >
+                <IconSymbol name="faceid" size={20} color={colors.primary} />
+                <Text className="ml-2 text-base font-bold text-primary">Usar huella o Face ID</Text>
+              </Pressable>
+            ) : null}
           </View>
 
           <View className="mt-5 flex-row items-start rounded-2xl bg-primary/5 px-4 py-3.5">
