@@ -14,7 +14,7 @@ Objetivo: levantar y validar el cliente React Native/Expo contra la API REAL de 
 3) Crear .env desde .env.example y completar SOLO valores públicos:
    EXPO_PUBLIC_ALLSENDER_BASE_URL=https://auth.allsender.tech
    EXPO_PUBLIC_ALLSENDER_CLIENT_ID=<CLIENT_ID_REAL_REGISTRADO>
-   EXPO_PUBLIC_ALLSENDER_REDIRECT_URI=manusomnichannelmobile://oauth/callback
+   EXPO_PUBLIC_ALLSENDER_REDIRECT_URI=allsender://oauth/callback
    EXPO_PUBLIC_EAS_PROJECT_ID=<EAS_PROJECT_ID>
    EXPO_PUBLIC_ALLSENDER_SYNC_INTERVAL_MS=2500
 
@@ -48,7 +48,7 @@ NUNCA poner client_secret en React Native.
 
 9) Para push remoto usar development/release build con EAS_PROJECT_ID real. No considerar Expo Go como QA final de push.
 
-10) Si falla login, comprobar PRIMERO que EXPO_PUBLIC_ALLSENDER_CLIENT_ID corresponde a una OAuth App registrada que acepte el redirect exacto manusomnichannelmobile://oauth/callback. No hardcodear secretos para "resolver" el problema.
+10) Si falla login, comprobar PRIMERO que el servidor tenga habilitado el cliente first-party allsender-mobile y el redirect fijo allsender://oauth/callback. No hardcodear secretos para "resolver" el problema.
 
 11) No declarar multi-team ni Pusher realtime completados: el Postman actual no publica esos endpoints. Documentar cualquier cambio de backend por separado.
 

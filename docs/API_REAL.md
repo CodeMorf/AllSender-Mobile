@@ -14,7 +14,7 @@ Login nativo:
   "email": "usuario@empresa.com",
   "password": "********",
   "client_id": "CLIENT_ID",
-  "redirect_uri": "manusomnichannelmobile://oauth/callback",
+  "redirect_uri": "allsender://oauth/callback",
   "scope": "openid profile email team offline_access",
   "state": "mobile-state"
 }

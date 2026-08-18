@@ -4,7 +4,7 @@ import { ALLSENDER_REDIRECT_URI, ALLSENDER_SCOPES } from "@/constants/allsender"
 
 describe("AllSender Mobile production contract", () => {
   it("usa el callback nativo registrado", () => {
-    expect(ALLSENDER_REDIRECT_URI).toBe("manusomnichannelmobile://oauth/callback");
+    expect(ALLSENDER_REDIRECT_URI).toBe("allsender://oauth/callback");
   });
 
   it("solicita solo scopes publicados por el OAuth actual", () => {

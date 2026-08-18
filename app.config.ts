@@ -2,7 +2,7 @@ import "./scripts/load-env.js";
 import type { ExpoConfig } from "expo/config";
 
 const bundleId = "com.codemorf.allsendermobile";
-const deepLinkScheme = "manusomnichannelmobile";
+const deepLinkScheme = "allsender";
 
 const config: ExpoConfig = {
   name: "AllSender Mobile",

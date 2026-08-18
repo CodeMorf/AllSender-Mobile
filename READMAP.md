@@ -17,7 +17,7 @@ Leyenda: `✅ terminado` · `🟡 depende de configuración/QA` · `🔵 depende
 - ✅ `/api/team`.
 - ✅ Logout real `/es/sign-out`.
 - ✅ Sin `client_secret` en app.
-- 🟡 Configurar `EXPO_PUBLIC_ALLSENDER_CLIENT_ID` real.
+- 🟡 Desplegar el cliente first-party `allsender-mobile` y validar login EcoMarket.
 
 ## R2 — Bandeja
 - ✅ `/api/chat-mobile/chats`.

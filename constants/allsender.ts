@@ -3,10 +3,10 @@ export const ALLSENDER_BASE_URL = (
 ).replace(/\/$/, "");
 
 /**
- * Public identifier of the OAuth app registered in AllSender.
- * It is safe to ship a client_id in a native application. Never ship client_secret.
+ * First-party public identifier for the AllSender Mobile app. It is safe to
+ * ship a client_id in a native application. Never ship client_secret.
  */
-export const ALLSENDER_CLIENT_ID = process.env.EXPO_PUBLIC_ALLSENDER_CLIENT_ID || "";
+export const ALLSENDER_CLIENT_ID = process.env.EXPO_PUBLIC_ALLSENDER_CLIENT_ID || "allsender-mobile";
 
 /**
  * The current production backend exposes the chat-mobile API through the
@@ -15,7 +15,7 @@ export const ALLSENDER_CLIENT_ID = process.env.EXPO_PUBLIC_ALLSENDER_CLIENT_ID |
  * the native networking cookie jar.
  */
 export const ALLSENDER_REDIRECT_URI =
-  process.env.EXPO_PUBLIC_ALLSENDER_REDIRECT_URI || "manusomnichannelmobile://oauth/callback";
+  process.env.EXPO_PUBLIC_ALLSENDER_REDIRECT_URI || "allsender://oauth/callback";
 
 export const ALLSENDER_SCOPES = [
   "openid",

@@ -16,7 +16,7 @@ export type NativeLoginResult = {
 function assertConfigured() {
   if (!ALLSENDER_CLIENT_ID) {
     throw new Error(
-      "Falta EXPO_PUBLIC_ALLSENDER_CLIENT_ID. Usa el client_id real registrado para AllSender Mobile.",
+      "El cliente first-party AllSender Mobile no está habilitado en el entorno.",
     );
   }
 }

@@ -13,7 +13,7 @@
     },
     {
       "key": "redirect_uri",
-      "value": "manusomnichannelmobile://oauth/callback",
+      "value": "allsender://oauth/callback",
       "type": "string"
     },
     {

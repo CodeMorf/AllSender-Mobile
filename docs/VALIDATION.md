@@ -41,7 +41,7 @@ y validar en Android/iOS:
 
 ## Bloqueos externos actuales
 
-- Falta proporcionar/configurar el `client_id` real de la OAuth App.
+- El cliente first-party `allsender-mobile` debe estar habilitado en el backend antes de probar el login real.
 - Falta `EXPO_PUBLIC_EAS_PROJECT_ID` para push/builds reales.
 - Multi-equipo requiere backend.
 - Pusher privado/realtime requiere backend.
