@@ -15,14 +15,26 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
   headers.set("Accept", "application/json");
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 
-  const response = await fetch(`${ALLSENDER_BASE_URL}${path}`, {
-    ...init,
-    credentials: "include",
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${ALLSENDER_BASE_URL}${path}`, {
+      ...init,
+      credentials: "include",
+      headers,
+    });
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause || "");
+    if (/failed to fetch|network request failed|load failed/i.test(message)) {
+      throw new AllSenderApiError(0, "No pudimos conectar con AllSender. Comprueba tu conexión e inténtalo de nuevo.", "network_error");
+    }
+    throw cause;
+  }
 
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new AllSenderApiError(401, "Tu sesión expiró. Vuelve a iniciar sesión para continuar.", "session_expired");
+    }
     throw new AllSenderApiError(
       response.status,
       payload?.message || payload?.error_description || payload?.error || `Error HTTP ${response.status}`,
