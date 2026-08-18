@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { Platform, Vibration } from "react-native";
 
 import { registerDevice } from "./allsender/api";
 import { secureGet, secureSet } from "./allsender/storage";
@@ -9,6 +9,8 @@ import { loadPreferences } from "./preferences";
 
 const DEVICE_KEY = "device.id";
 const CHAT_CHANNEL_PREFIX = "chat-alerts";
+const DEFAULT_REMOTE_CHANNEL_ID = "allsender-default";
+const VIBRATION_PATTERN = [0, 250, 180, 250];
 const recentMessageAlerts = new Map<string, number>();
 const ALERT_DEDUPE_MS = 90_000;
 
@@ -89,10 +91,18 @@ export async function configureNotifications() {
 
   const channelId = chatChannelId(preferences.soundEnabled, preferences.vibrationEnabled);
   if (Platform.OS === "android") {
+    // The backend uses this stable channel for remote Expo pushes.
+    await Notifications.setNotificationChannelAsync(DEFAULT_REMOTE_CHANNEL_ID, {
+      name: "Mensajes de AllSender",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: preferences.vibrationEnabled ? VIBRATION_PATTERN : [0],
+      sound: preferences.soundEnabled ? "default" : undefined,
+      lightColor: "#0B6477",
+    });
     await Notifications.setNotificationChannelAsync(channelId, {
       name: "Mensajes de AllSender",
       importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: preferences.vibrationEnabled ? [0, 250, 180, 250] : [0],
+      vibrationPattern: preferences.vibrationEnabled ? VIBRATION_PATTERN : [0],
       sound: preferences.soundEnabled ? "default" : undefined,
       lightColor: "#0B6477",
     });
@@ -113,6 +123,8 @@ export async function configureNotifications() {
     pushToken: pushToken.data,
     appVersion: Constants.expoConfig?.version || null,
     deviceName: null,
+    soundEnabled: preferences.soundEnabled,
+    vibrationEnabled: preferences.vibrationEnabled,
   });
   return pushToken.data;
 }
@@ -128,9 +140,17 @@ export async function playLocalChatAlert(title: string, body: string, data?: Rec
       title,
       body,
       sound: preferences.soundEnabled ? "default" : undefined,
-      ...(Platform.OS === "android" ? { channelId: chatChannelId(preferences.soundEnabled, preferences.vibrationEnabled) } : {}),
+      ...(Platform.OS === "android"
+        ? {
+            channelId: chatChannelId(preferences.soundEnabled, preferences.vibrationEnabled),
+            vibrationPattern: preferences.vibrationEnabled ? VIBRATION_PATTERN : [0],
+          }
+        : {}),
       data: { ...(data || {}), __allsender_local: true },
     },
     trigger: null,
   });
+  if (preferences.vibrationEnabled && (Platform.OS === "android" || Platform.OS === "ios")) {
+    Vibration.vibrate(VIBRATION_PATTERN);
+  }
 }

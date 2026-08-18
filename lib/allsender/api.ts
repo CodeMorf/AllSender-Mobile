@@ -291,6 +291,8 @@ export async function registerDevice(input: {
   pushToken: string;
   appVersion?: string | null;
   deviceName?: string | null;
+  soundEnabled?: boolean;
+  vibrationEnabled?: boolean;
 }) {
   return request<{ ok?: boolean }>("/api/mobile/register-device", {
     method: "POST",
@@ -301,6 +303,8 @@ export async function registerDevice(input: {
       app: "allsender-mobile",
       appVersion: input.appVersion || undefined,
       deviceName: input.deviceName || undefined,
+      soundEnabled: input.soundEnabled,
+      vibrationEnabled: input.vibrationEnabled,
     }),
   });
 }
