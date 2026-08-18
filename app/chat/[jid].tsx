@@ -228,14 +228,14 @@ export default function ChatScreen() {
             return (
               <View className={`mb-2.5 max-w-[86%] rounded-3xl px-3.5 py-3 ${outgoing ? "self-end bg-primary" : "self-start bg-surface border border-border"}`}>
                 {renderMedia(item, colors)}
-                {item.body ? <Text className={`text-[15px] leading-5 ${outgoing ? "text-background" : "text-foreground"}`}>{item.body}</Text> : null}
+                {item.body ? <Text className={`text-[15px] leading-5 ${outgoing ? "text-white" : "text-foreground"}`}>{item.body}</Text> : null}
                 {item.mediaType === "location" && item.locationLatitude && item.locationLongitude ? (
                   <Pressable onPress={() => void Linking.openURL(`https://maps.google.com/?q=${item.locationLatitude},${item.locationLongitude}`)} className="mt-2">
-                    <Text className={`text-sm font-semibold ${outgoing ? "text-background" : "text-primary"}`}>Abrir ubicación</Text>
+                    <Text className={`text-sm font-semibold ${outgoing ? "text-white" : "text-primary"}`}>Abrir ubicación</Text>
                   </Pressable>
                 ) : null}
                 <View className="mt-1.5 flex-row items-center justify-end">
-                  <Text className={`text-[10px] ${outgoing ? "text-background/70" : "text-muted"}`}>{item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</Text>
+                  <Text className={`text-[10px] ${outgoing ? "text-white/70" : "text-muted"}`}>{item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</Text>
                   {item.status === "failed" ? <Text className="ml-2 text-[10px] font-bold text-error">No enviado</Text> : null}
                 </View>
               </View>
@@ -259,7 +259,7 @@ export default function ChatScreen() {
               style={({ pressed }) => [{ opacity: pressed || sending ? 0.55 : 1 }]}
               className="ml-1 h-11 w-11 items-center justify-center rounded-full bg-primary"
             >
-              {sending ? <ActivityIndicator size="small" color={colors.background} /> : <IconSymbol name="paperplane.fill" size={19} color={colors.background} />}
+              {sending ? <ActivityIndicator size="small" color={colors.foreground} /> : <IconSymbol name="paperplane.fill" size={19} color={colors.foreground} />}
             </Pressable>
           ) : (
             <Pressable
@@ -269,9 +269,9 @@ export default function ChatScreen() {
               className={`ml-1 h-11 w-11 items-center justify-center rounded-full ${recorderState.isRecording ? "bg-error" : "bg-primary"}`}
             >
               {sendingVoice ? (
-                <ActivityIndicator size="small" color={colors.background} />
+                <ActivityIndicator size="small" color={colors.foreground} />
               ) : (
-                <IconSymbol name={recorderState.isRecording ? "stop.fill" : "mic.fill"} size={20} color={colors.background} />
+                <IconSymbol name={recorderState.isRecording ? "stop.fill" : "mic.fill"} size={20} color={colors.foreground} />
               )}
             </Pressable>
           )}

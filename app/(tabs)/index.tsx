@@ -117,7 +117,7 @@ export default function InboxScreen() {
           <Text className="mt-1 text-3xl font-bold text-foreground">Conversaciones</Text>
           <View className="mt-2 flex-row items-center">
             <View className={`mr-2 h-2 w-2 rounded-full ${auth.status === "authenticated" ? "bg-success" : "bg-warning"}`} />
-            <Text className="text-sm text-muted" numberOfLines={1}>{teamName} · {role} · Sincronización activa</Text>
+            <Text className="text-sm text-muted" numberOfLines={1}>{teamName} · {role} · En línea</Text>
           </View>
         </View>
         <Pressable
@@ -144,11 +144,11 @@ export default function InboxScreen() {
 
       <View className="mt-3 flex-row gap-2">
         <Pressable onPress={() => setFilter("all")} className={`rounded-full px-4 py-2 ${filter === "all" ? "bg-primary" : "bg-surface border border-border"}`}>
-          <Text className={`text-sm font-semibold ${filter === "all" ? "text-background" : "text-foreground"}`}>Todas</Text>
+          <Text className={`text-sm font-semibold ${filter === "all" ? "text-white" : "text-foreground"}`}>Todas</Text>
         </Pressable>
         <Pressable onPress={() => setFilter("unread")} className={`flex-row rounded-full px-4 py-2 ${filter === "unread" ? "bg-primary" : "bg-surface border border-border"}`}>
-          <Text className={`text-sm font-semibold ${filter === "unread" ? "text-background" : "text-foreground"}`}>No leídas</Text>
-          {unreadTotal > 0 ? <Text className={`ml-2 text-sm font-bold ${filter === "unread" ? "text-background" : "text-primary"}`}>{unreadTotal}</Text> : null}
+          <Text className={`text-sm font-semibold ${filter === "unread" ? "text-white" : "text-foreground"}`}>No leídas</Text>
+          {unreadTotal > 0 ? <Text className={`ml-2 text-sm font-bold ${filter === "unread" ? "text-white" : "text-primary"}`}>{unreadTotal}</Text> : null}
         </Pressable>
       </View>
 
@@ -157,7 +157,7 @@ export default function InboxScreen() {
           <Text className="font-semibold text-foreground">No pudimos sincronizar</Text>
           <Text className="mt-1 text-sm leading-5 text-muted">{error}</Text>
           <Pressable onPress={() => void loadChats()} className="mt-3 self-start rounded-xl bg-primary px-4 py-2.5">
-            <Text className="font-semibold text-background">Reintentar</Text>
+            <Text className="font-semibold text-white">Reintentar</Text>
           </Pressable>
         </View>
       ) : null}
@@ -209,7 +209,7 @@ export default function InboxScreen() {
               <View className="mt-1.5 flex-row items-center">
                 <Text className={`flex-1 text-sm ${item.unreadCount > 0 ? "font-medium text-foreground" : "text-muted"}`} numberOfLines={1}>{item.lastMessage || "Sin mensajes"}</Text>
                 {item.unreadCount > 0 ? (
-                  <View className="ml-2 min-w-6 rounded-full bg-primary px-2 py-1"><Text className="text-center text-[11px] font-bold text-background">{item.unreadCount}</Text></View>
+                  <View className="ml-2 min-w-6 rounded-full bg-primary px-2 py-1"><Text className="text-center text-[11px] font-bold text-white">{item.unreadCount}</Text></View>
                 ) : null}
               </View>
             </View>

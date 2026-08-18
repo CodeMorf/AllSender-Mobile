@@ -6,7 +6,6 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useAllSenderAuth } from "@/lib/allsender/auth-context";
-import { getAuthDiagnostics } from "@/lib/allsender/oauth";
 import { configureNotifications, playLocalChatAlert } from "@/lib/notifications";
 import { DEFAULT_PREFERENCES, loadPreferences, savePreferences, type MobilePreferences } from "@/lib/preferences";
 
@@ -15,7 +14,6 @@ export default function SettingsScreen() {
   const router = useRouter();
   const auth = useAllSenderAuth();
   const [preferences, setPreferences] = useState<MobilePreferences>(DEFAULT_PREFERENCES);
-  const diagnostics = getAuthDiagnostics();
 
   useEffect(() => { void loadPreferences().then(setPreferences); }, []);
 
@@ -39,7 +37,7 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
         <Text className="text-xs font-bold tracking-[2px] text-primary">CUENTA</Text>
         <Text className="mt-1 text-3xl font-bold text-foreground">Tu AllSender</Text>
-        <Text className="mt-2 text-sm leading-5 text-muted">Identidad, equipo y alertas de este dispositivo.</Text>
+        <Text className="mt-2 text-sm leading-5 text-muted">Tu equipo, tus alertas y tu forma de trabajar.</Text>
 
         <View className="mt-5 rounded-3xl bg-surface border border-border p-5">
           <View className="flex-row items-center">
@@ -70,16 +68,14 @@ export default function SettingsScreen() {
         </View>
 
         <View className="mt-4 rounded-3xl bg-surface border border-border p-5">
-          <Text className="text-base font-semibold text-foreground">Seguridad</Text>
-          <View className="mt-3 flex-row items-start"><IconSymbol name="lock.shield.fill" size={19} color={colors.success} /><Text className="ml-2 flex-1 text-sm leading-5 text-muted">Sesión nativa con cookie HttpOnly de AllSender. No guardamos tu contraseña ni secretos de WhatsApp/Meta en el teléfono.</Text></View>
-          <Text className="mt-3 text-xs text-muted">Servidor: {diagnostics.baseUrl}</Text>
-          <Text className="mt-1 text-xs text-muted">OAuth App: {diagnostics.hasClientId ? "configurada" : "pendiente"}</Text>
+          <Text className="text-base font-semibold text-foreground">Tu privacidad</Text>
+          <View className="mt-3 flex-row items-start"><IconSymbol name="lock.shield.fill" size={19} color={colors.success} /><Text className="ml-2 flex-1 text-sm leading-5 text-muted">Tu contraseña no se guarda en el teléfono. AllSender protege el acceso a tus conversaciones y a la información de tu equipo.</Text></View>
         </View>
 
         <View className="mt-4 rounded-3xl border border-border bg-surface p-5">
           <Text className="text-base font-semibold text-foreground">Sincronización</Text>
           <Text className="mt-1 text-sm leading-5 text-muted">La bandeja se actualiza automáticamente mientras la app está abierta y las notificaciones cubren el segundo plano.</Text>
-          <Pressable onPress={() => void auth.refresh()} className="mt-4 items-center rounded-2xl bg-primary px-4 py-3.5"><Text className="font-bold text-background">Sincronizar ahora</Text></Pressable>
+          <Pressable onPress={() => void auth.refresh()} className="mt-4 items-center rounded-2xl bg-primary px-4 py-3.5"><Text className="font-bold text-white">Sincronizar ahora</Text></Pressable>
         </View>
 
         <Pressable onPress={confirmLogout} className="mt-4 items-center rounded-2xl border border-error/30 bg-error/5 px-4 py-4"><Text className="font-bold text-error">Cerrar sesión en este dispositivo</Text></Pressable>

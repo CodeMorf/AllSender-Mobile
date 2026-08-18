@@ -1,9 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Platform } from "react-native";
 
 import { getBootstrap, getCurrentTeam, getSessionUser } from "./api";
 import { signInNative, signOutNative, signUpNative } from "./oauth";
 import { clearSession, getCachedUserInfo, setCachedUserInfo } from "./session";
 import type { AllSenderUserInfo, BootstrapResponse } from "./types";
+import { ALLSENDER_CLIENT_ID } from "@/constants/allsender";
 
 export type AuthStatus = "loading" | "signed_out" | "authenticated" | "error";
 
@@ -20,6 +22,17 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function friendlyAuthError(cause: unknown) {
+  const raw = cause instanceof Error ? cause.message : String(cause || "");
+  if (/failed to fetch|network request failed|load failed/i.test(raw)) {
+    return "No pudimos conectar con AllSender. Comprueba tu conexión e inténtalo de nuevo.";
+  }
+  if (/client_id|configuración pendiente/i.test(raw)) {
+    return "El acceso móvil aún no está disponible para este entorno.";
+  }
+  return raw || "No se pudo completar el acceso. Inténtalo de nuevo.";
+}
+
 export function AllSenderAuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<AllSenderUserInfo | null>(null);
@@ -28,6 +41,15 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
 
   const hydrate = useCallback(async () => {
     setError(null);
+    // A browser preview without the public app identifier cannot have a
+    // session, and should open the friendly sign-in state instead of making a
+    // cross-origin request that browsers reject before rendering anything.
+    if (Platform.OS === "web" && !ALLSENDER_CLIENT_ID) {
+      setUser(null);
+      setBootstrap(null);
+      setStatus("signed_out");
+      return;
+    }
     const cached = await getCachedUserInfo();
     if (cached) setUser(cached);
 
@@ -77,7 +99,7 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
       });
       setStatus("authenticated");
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "No se pudo recuperar la sesión de AllSender.";
+      const message = friendlyAuthError(cause);
       setError(message);
       setStatus(cached ? "error" : "signed_out");
       if (!cached) {
@@ -99,7 +121,7 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
       await hydrate();
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo iniciar sesión con AllSender.");
+      setError(friendlyAuthError(cause));
       setStatus("signed_out");
       return false;
     }
@@ -113,7 +135,7 @@ export function AllSenderAuthProvider({ children }: { children: React.ReactNode 
       await hydrate();
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo crear la cuenta AllSender.");
+      setError(friendlyAuthError(cause));
       setStatus("signed_out");
       return false;
     }

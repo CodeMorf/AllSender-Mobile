@@ -68,15 +68,22 @@ export default function SignInScreen() {
             <Text className="mt-3 text-base leading-6 text-muted">
               Acceso nativo para propietarios, administradores y agentes. Tus canales y permisos permanecen controlados por AllSender.
             </Text>
+            <View className="mt-4 flex-row flex-wrap gap-2">
+              {["Chat", "CRM", "Equipos", "Tiempo real"].map((label) => (
+                <View key={label} className="rounded-full border border-border bg-surface px-3 py-1.5">
+                  <Text className="text-xs font-semibold text-muted">{label}</Text>
+                </View>
+              ))}
+            </View>
           </View>
 
           <View className="mt-7 rounded-[28px] border border-border bg-surface p-5">
             <View className="flex-row rounded-2xl bg-background p-1">
               <Pressable onPress={() => setMode("login")} className={`flex-1 items-center rounded-xl py-2.5 ${mode === "login" ? "bg-primary" : ""}`}>
-                <Text className={`font-semibold ${mode === "login" ? "text-background" : "text-muted"}`}>Iniciar sesión</Text>
+                <Text className={`font-semibold ${mode === "login" ? "text-white" : "text-muted"}`}>Iniciar sesión</Text>
               </Pressable>
               <Pressable onPress={() => setMode("signup")} className={`flex-1 items-center rounded-xl py-2.5 ${mode === "signup" ? "bg-primary" : ""}`}>
-                <Text className={`font-semibold ${mode === "signup" ? "text-background" : "text-muted"}`}>Crear cuenta</Text>
+                <Text className={`font-semibold ${mode === "signup" ? "text-white" : "text-muted"}`}>Crear cuenta</Text>
               </Pressable>
             </View>
 
@@ -136,9 +143,9 @@ export default function SignInScreen() {
 
             {!ALLSENDER_CLIENT_ID ? (
               <View className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-3.5">
-                <Text className="font-semibold text-foreground">Configuración pendiente</Text>
+                <Text className="font-semibold text-foreground">Acceso en preparación</Text>
                 <Text className="mt-1 text-sm leading-5 text-muted">
-                  Define EXPO_PUBLIC_ALLSENDER_CLIENT_ID con el client_id real registrado para AllSender Mobile.
+                  El acceso de este entorno todavía no está habilitado. Vuelve a intentarlo cuando tu equipo reciba la invitación.
                 </Text>
               </View>
             ) : null}
@@ -149,8 +156,8 @@ export default function SignInScreen() {
               style={({ pressed }) => [{ opacity: pressed || disabled ? 0.55 : 1 }]}
               className="mt-5 h-14 flex-row items-center justify-center rounded-2xl bg-primary px-5"
             >
-              {working ? <ActivityIndicator color={colors.background} /> : <IconSymbol name="lock.shield.fill" size={20} color={colors.background} />}
-              <Text className="ml-2 text-base font-bold text-background">
+              {working ? <ActivityIndicator color={colors.foreground} /> : <IconSymbol name="lock.shield.fill" size={20} color={colors.foreground} />}
+              <Text className="ml-2 text-base font-bold text-white">
                 {mode === "login" ? "Entrar a AllSender" : "Crear mi cuenta"}
               </Text>
             </Pressable>
@@ -159,7 +166,7 @@ export default function SignInScreen() {
           <View className="mt-5 flex-row items-start rounded-2xl bg-primary/5 px-4 py-3.5">
             <IconSymbol name="checkmark.shield.fill" size={19} color={colors.primary} />
             <Text className="ml-2 flex-1 text-xs leading-5 text-muted">
-              La contraseña se envía únicamente a auth.allsender.tech por HTTPS para crear la sesión y nunca se guarda en el dispositivo.
+              Tus datos se mantienen protegidos y se usan únicamente para iniciar tu sesión.
             </Text>
           </View>
         </ScrollView>
